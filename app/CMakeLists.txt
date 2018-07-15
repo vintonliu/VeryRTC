@@ -45,5 +45,4 @@ target_link_libraries( # Specifies the target library.
                        # included in the NDK.
                        ${log-lib} )
 
-ADD_SUBDIRECTORY(src/main/cpp/sip/osip)
-ADD_SUBDIRECTORY(src/main/cpp/sip/cares)
+ADD_SUBDIRECTORY(src/main/cpp/sip)
