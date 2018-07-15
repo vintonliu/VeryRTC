@@ -15,76 +15,77 @@ else()
     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
 endif()
 
+set(OSIP_CUR_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp/sip/osip)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/src
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include
-                    ${CMAKE_CURRENT_SOURCE_DIR}/src/osip2
-                    ${CMAKE_CURRENT_SOURCE_DIR}/src/osipparser2)
+include_directories(${OSIP_CUR_DIR}
+                    ${OSIP_CUR_DIR}/src
+                    ${OSIP_CUR_DIR}/include
+                    ${OSIP_CUR_DIR}/src/osip2
+                    ${OSIP_CUR_DIR}/src/osipparser2)
 
-set(OSIP2_SRC   src/osip2/fsm_misc.c
-                src/osip2/ict.c
-                src/osip2/ict_fsm.c
-                src/osip2/ist.c
-                src/osip2/ist_fsm.c
-                src/osip2/nict.c
-                src/osip2/nict_fsm.c
-                src/osip2/nist.c
-                src/osip2/nist_fsm.c
-                src/osip2/osip.c
-                src/osip2/osip_dialog.c
-                src/osip2/osip_event.c
-                src/osip2/osip_time.c
-                src/osip2/osip_transaction.c
-                src/osip2/port_condv.c
-                src/osip2/port_fifo.c
-                src/osip2/port_sema.c
-                src/osip2/port_thread.c)
+set(OSIP2_SRC   ${OSIP_CUR_DIR}/src/osip2/fsm_misc.c
+                ${OSIP_CUR_DIR}/src/osip2/ict.c
+                ${OSIP_CUR_DIR}/src/osip2/ict_fsm.c
+                ${OSIP_CUR_DIR}/src/osip2/ist.c
+                ${OSIP_CUR_DIR}/src/osip2/ist_fsm.c
+                ${OSIP_CUR_DIR}/src/osip2/nict.c
+                ${OSIP_CUR_DIR}/src/osip2/nict_fsm.c
+                ${OSIP_CUR_DIR}/src/osip2/nist.c
+                ${OSIP_CUR_DIR}/src/osip2/nist_fsm.c
+                ${OSIP_CUR_DIR}/src/osip2/osip.c
+                ${OSIP_CUR_DIR}/src/osip2/osip_dialog.c
+                ${OSIP_CUR_DIR}/src/osip2/osip_event.c
+                ${OSIP_CUR_DIR}/src/osip2/osip_time.c
+                ${OSIP_CUR_DIR}/src/osip2/osip_transaction.c
+                ${OSIP_CUR_DIR}/src/osip2/port_condv.c
+                ${OSIP_CUR_DIR}/src/osip2/port_fifo.c
+                ${OSIP_CUR_DIR}/src/osip2/port_sema.c
+                ${OSIP_CUR_DIR}/src/osip2/port_thread.c)
 
-set(OSIPPARSER2_SRC src/osipparser2/osip_proxy_authorization.c
-                    src/osipparser2/osip_cseq.c
-                    src/osipparser2/osip_record_route.c
-                    src/osipparser2/osip_route.c
-                    src/osipparser2/osip_to.c
-                    src/osipparser2/osip_from.c
-                    src/osipparser2/osip_uri.c
-                    src/osipparser2/osip_authorization.c
-                    src/osipparser2/osip_header.c
-                    src/osipparser2/osip_www_authenticate.c
-                    src/osipparser2/osip_via.c
-                    src/osipparser2/osip_body.c
-                    src/osipparser2/osip_md5c.c
-                    src/osipparser2/osip_message.c
-                    src/osipparser2/osip_list.c
-                    src/osipparser2/osip_call_id.c
-                    src/osipparser2/osip_message_parse.c
-                    src/osipparser2/osip_contact.c
-                    src/osipparser2/osip_message_to_str.c
-                    src/osipparser2/osip_content_length.c
-                    src/osipparser2/osip_parser_cfg.c
-                    src/osipparser2/osip_content_type.c
-                    src/osipparser2/osip_proxy_authenticate.c
-                    src/osipparser2/osip_mime_version.c
-                    src/osipparser2/osip_port.c
-                    src/osipparser2/osip_call_info.c
-                    src/osipparser2/osip_content_disposition.c
-                    src/osipparser2/osip_accept_encoding.c
-                    src/osipparser2/osip_content_encoding.c
-                    src/osipparser2/osip_authentication_info.c
-                    src/osipparser2/osip_proxy_authentication_info.c
-                    src/osipparser2/osip_accept_language.c
-                    src/osipparser2/osip_accept.c
-                    src/osipparser2/osip_alert_info.c
-                    src/osipparser2/osip_error_info.c
-                    src/osipparser2/osip_allow.c
-                    src/osipparser2/sdp_accessor.c
-                    src/osipparser2/sdp_message.c)
+set(OSIPPARSER2_SRC ${OSIP_CUR_DIR}/src/osipparser2/osip_proxy_authorization.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_cseq.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_record_route.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_route.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_to.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_from.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_uri.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_authorization.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_header.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_www_authenticate.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_via.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_body.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_md5c.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_message.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_list.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_call_id.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_message_parse.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_contact.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_message_to_str.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_content_length.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_parser_cfg.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_content_type.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_proxy_authenticate.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_mime_version.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_port.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_call_info.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_content_disposition.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_accept_encoding.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_content_encoding.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_authentication_info.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_proxy_authentication_info.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_accept_language.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_accept.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_alert_info.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_error_info.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/osip_allow.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/sdp_accessor.c
+                    ${OSIP_CUR_DIR}/src/osipparser2/sdp_message.c)
 
 add_library ( # Sets the name of the library.
-              libosip2
+              osip2
 
               # Sets the library as a static library.
-              SHARED
+              STATIC
 
               # Provides a relative path to your source file(s).
               # osip2 source files
@@ -112,7 +113,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       libosip2
+                       osip2
 
                        # Links the target library to the log library
                        # included in the NDK.

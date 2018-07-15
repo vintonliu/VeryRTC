@@ -15,57 +15,58 @@ else()
     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
 endif()
 
+set(EXOSIP_CUR_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp/sip/exosip)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../osip/include)
+include_directories(${EXOSIP_CUR_DIR}
+                    ${EXOSIP_CUR_DIR}/include
+                    ${EXOSIP_CUR_DIR}/../osip/include)
 
-set(EXOSIP_SRC  src/eXosip.c
-                src/eXconf.c
-                src/eXregister_api.c
-                src/eXcall_api.c
-                src/eXmessage_api.c
-                src/eXtransport.c
-                src/jrequest.c
-                src/jresponse.c
-                src/jcallback.c
-                src/jdialog.c
-                src/udp.c
-                src/jcall.c
-                src/jreg.c
-                src/eXutils.c
-                src/jevents.c
-                src/misc.c
-                src/jpipe.c
-                src/jpipe.h
-                src/jauth.c
-                src/eXtransport.h
-                src/eXosip2.h
-                src/eXtl_udp.c
-                src/eXtl_tcp.c
-                src/eXtl_dtls.c
-                src/eXtl_tls.c
-                src/milenage.c
-                src/rijndael.c
-                src/milenage.h
-                src/rijndael.h
-                src/eXsubscription_api.c
-                src/eXoptions_api.c
-                src/eXinsubscription_api.c
-                src/eXpublish_api.c
-                src/jnotify.c
-                src/jsubscribe.c
-                src/inet_ntop.c
-                src/inet_ntop.h
-                src/jpublish.c
-                src/sdp_offans.c)
+set(EXOSIP_SRC  ${EXOSIP_CUR_DIR}/src/eXosip.c
+                ${EXOSIP_CUR_DIR}/src/eXconf.c
+                ${EXOSIP_CUR_DIR}/src/eXregister_api.c
+                ${EXOSIP_CUR_DIR}/src/eXcall_api.c
+                ${EXOSIP_CUR_DIR}/src/eXmessage_api.c
+                ${EXOSIP_CUR_DIR}/src/eXtransport.c
+                ${EXOSIP_CUR_DIR}/src/jrequest.c
+                ${EXOSIP_CUR_DIR}/src/jresponse.c
+                ${EXOSIP_CUR_DIR}/src/jcallback.c
+                ${EXOSIP_CUR_DIR}/src/jdialog.c
+                ${EXOSIP_CUR_DIR}/src/udp.c
+                ${EXOSIP_CUR_DIR}/src/jcall.c
+                ${EXOSIP_CUR_DIR}/src/jreg.c
+                ${EXOSIP_CUR_DIR}/src/eXutils.c
+                ${EXOSIP_CUR_DIR}/src/jevents.c
+                ${EXOSIP_CUR_DIR}/src/misc.c
+                ${EXOSIP_CUR_DIR}/src/jpipe.c
+                ${EXOSIP_CUR_DIR}/src/jpipe.h
+                ${EXOSIP_CUR_DIR}/src/jauth.c
+                ${EXOSIP_CUR_DIR}/src/eXtransport.h
+                ${EXOSIP_CUR_DIR}/src/eXosip2.h
+                ${EXOSIP_CUR_DIR}/src/eXtl_udp.c
+                ${EXOSIP_CUR_DIR}/src/eXtl_tcp.c
+                ${EXOSIP_CUR_DIR}/src/eXtl_dtls.c
+                ${EXOSIP_CUR_DIR}/src/eXtl_tls.c
+                ${EXOSIP_CUR_DIR}/src/milenage.c
+                ${EXOSIP_CUR_DIR}/src/rijndael.c
+                ${EXOSIP_CUR_DIR}/src/milenage.h
+                ${EXOSIP_CUR_DIR}/src/rijndael.h
+                ${EXOSIP_CUR_DIR}/src/eXsubscription_api.c
+                ${EXOSIP_CUR_DIR}/src/eXoptions_api.c
+                ${EXOSIP_CUR_DIR}/src/eXinsubscription_api.c
+                ${EXOSIP_CUR_DIR}/src/eXpublish_api.c
+                ${EXOSIP_CUR_DIR}/src/jnotify.c
+                ${EXOSIP_CUR_DIR}/src/jsubscribe.c
+                ${EXOSIP_CUR_DIR}/src/inet_ntop.c
+                ${EXOSIP_CUR_DIR}/src/inet_ntop.h
+                ${EXOSIP_CUR_DIR}/src/jpublish.c
+                ${EXOSIP_CUR_DIR}/src/sdp_offans.c)
 
 
 add_library ( # Sets the name of the library.
-              libexosip
+              exosip
 
               # Sets the library as a static library.
-              SHARED
+              STATIC
 
               # Provides a relative path to your source file(s).
               ${EXOSIP_SRC})
@@ -89,13 +90,11 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       libexosip
+                       exosip
 
                        # Links the target library to the log library
                        # included in the NDK.
-                       ${log-lib}
-                       libosip
-                       libcares)
+                       ${log-lib})
 
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../osip)
-ADD_SUBDIRECTORY(src/main/cpp/sip/cares)
+#ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../osip)
+#ADD_SUBDIRECTORY(src/main/cpp/sip/cares)

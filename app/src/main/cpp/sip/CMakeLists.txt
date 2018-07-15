@@ -10,7 +10,9 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-set(CMAKE_C_FLAGS "-DHAVE_CONFIG_H -DENABLE_TRACE -D__ANDROID_API__=17")
+#set(CMAKE_C_FLAGS "-DHAVE_CONFIG_H -DENABLE_TRACE -D__ANDROID_API__=17")
+ADD_DEFINITIONS(-DHAVE_CONFIG_H -DENABLE_TRACE -D__ANDROID_API__=17)
+
 
 if(${ANDROID_ABI} STREQUAL "armeabi-v7a")
     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)

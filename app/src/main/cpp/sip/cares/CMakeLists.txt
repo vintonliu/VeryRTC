@@ -15,65 +15,66 @@ else()
     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
 endif()
 
+set(CARES_CUR_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp/sip/cares)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CARES_CUR_DIR})
 
-set(CARES_SRC   ares__close_sockets.c
-                ares__get_hostent.c
-                ares__read_line.c
-                ares__timeval.c
-                ares_android.c
-                ares_cancel.c
-                ares_data.c
-                ares_destroy.c
-                ares_expand_name.c
-                ares_expand_string.c
-                ares_fds.c
-                ares_free_hostent.c
-                ares_free_string.c
-                ares_getenv.c
-                ares_gethostbyaddr.c
-                ares_gethostbyname.c
-                ares_getnameinfo.c
-                ares_getsock.c
-                ares_init.c
-                ares_library_init.c
-                ares_llist.c
-                ares_mkquery.c
-                ares_create_query.c
-                ares_nowarn.c
-                ares_options.c
-                ares_parse_a_reply.c
-                ares_parse_aaaa_reply.c
-                ares_parse_mx_reply.c
-                ares_parse_naptr_reply.c
-                ares_parse_ns_reply.c
-                ares_parse_ptr_reply.c
-                ares_parse_soa_reply.c
-                ares_parse_srv_reply.c
-                ares_parse_txt_reply.c
-                ares_platform.c
-                ares_process.c
-                ares_query.c
-                ares_search.c
-                ares_send.c
-                ares_strcasecmp.c
-                ares_strdup.c
-                ares_strerror.c
-                ares_timeout.c
-                ares_version.c
-                ares_writev.c
-                bitncmp.c
-                inet_net_pton.c
-                inet_ntop.c
-                windows_port.c)
+set(CARES_SRC   ${CARES_CUR_DIR}/ares__close_sockets.c
+                ${CARES_CUR_DIR}/ares__get_hostent.c
+                ${CARES_CUR_DIR}/ares__read_line.c
+                ${CARES_CUR_DIR}/ares__timeval.c
+                ${CARES_CUR_DIR}/ares_android.c
+                ${CARES_CUR_DIR}/ares_cancel.c
+                ${CARES_CUR_DIR}/ares_data.c
+                ${CARES_CUR_DIR}/ares_destroy.c
+                ${CARES_CUR_DIR}/ares_expand_name.c
+                ${CARES_CUR_DIR}/ares_expand_string.c
+                ${CARES_CUR_DIR}/ares_fds.c
+                ${CARES_CUR_DIR}/ares_free_hostent.c
+                ${CARES_CUR_DIR}/ares_free_string.c
+                ${CARES_CUR_DIR}/ares_getenv.c
+                ${CARES_CUR_DIR}/ares_gethostbyaddr.c
+                ${CARES_CUR_DIR}/ares_gethostbyname.c
+                ${CARES_CUR_DIR}/ares_getnameinfo.c
+                ${CARES_CUR_DIR}/ares_getsock.c
+                ${CARES_CUR_DIR}/ares_init.c
+                ${CARES_CUR_DIR}/ares_library_init.c
+                ${CARES_CUR_DIR}/ares_llist.c
+                ${CARES_CUR_DIR}/ares_mkquery.c
+                ${CARES_CUR_DIR}/ares_create_query.c
+                ${CARES_CUR_DIR}/ares_nowarn.c
+                ${CARES_CUR_DIR}/ares_options.c
+                ${CARES_CUR_DIR}/ares_parse_a_reply.c
+                ${CARES_CUR_DIR}/ares_parse_aaaa_reply.c
+                ${CARES_CUR_DIR}/ares_parse_mx_reply.c
+                ${CARES_CUR_DIR}/ares_parse_naptr_reply.c
+                ${CARES_CUR_DIR}/ares_parse_ns_reply.c
+                ${CARES_CUR_DIR}/ares_parse_ptr_reply.c
+                ${CARES_CUR_DIR}/ares_parse_soa_reply.c
+                ${CARES_CUR_DIR}/ares_parse_srv_reply.c
+                ${CARES_CUR_DIR}/ares_parse_txt_reply.c
+                ${CARES_CUR_DIR}/ares_platform.c
+                ${CARES_CUR_DIR}/ares_process.c
+                ${CARES_CUR_DIR}/ares_query.c
+                ${CARES_CUR_DIR}/ares_search.c
+                ${CARES_CUR_DIR}/ares_send.c
+                ${CARES_CUR_DIR}/ares_strcasecmp.c
+                ${CARES_CUR_DIR}/ares_strdup.c
+                ${CARES_CUR_DIR}/ares_strerror.c
+                ${CARES_CUR_DIR}/ares_timeout.c
+                ${CARES_CUR_DIR}/ares_version.c
+                ${CARES_CUR_DIR}/ares_writev.c
+                ${CARES_CUR_DIR}/bitncmp.c
+                ${CARES_CUR_DIR}/inet_net_pton.c
+                ${CARES_CUR_DIR}/inet_ntop.c
+                ${CARES_CUR_DIR}/windows_port.c)
 
 
 add_library ( # Sets the name of the library.
-              libcares
+              cares
 
               # Sets the library as a static library.
-              SHARED
+              STATIC
 
               # Provides a relative path to your source file(s).
               ${CARES_SRC})
@@ -97,7 +98,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       libcares
+                       cares
 
                        # Links the target library to the log library
                        # included in the NDK.

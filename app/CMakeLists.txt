@@ -12,6 +12,10 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI})
 
+INCLUDE(src/main/cpp/sip/osip/CMakeLists.txt)
+INCLUDE(src/main/cpp/sip/cares/CMakeLists.txt)
+INCLUDE(src/main/cpp/sip/exosip/CMakeLists.txt)
+
 add_library( # Sets the name of the library.
              native-lib
 
@@ -41,8 +45,13 @@ find_library( # Sets the name of the path variable.
 target_link_libraries( # Specifies the target library.
                        native-lib
 
+                       # Links the internal static librarys
+                       osip2
+                       cares
+                       exosip
+
                        # Links the target library to the log library
                        # included in the NDK.
-                       ${log-lib} )
+                       ${log-lib})
 
-ADD_SUBDIRECTORY(src/main/cpp/sip)
+# ADD_SUBDIRECTORY(src/main/cpp/sip)
