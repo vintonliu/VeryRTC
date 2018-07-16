@@ -10,8 +10,11 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-#set(CMAKE_C_FLAGS "-DHAVE_CONFIG_H -DENABLE_TRACE -D__ANDROID_API__=17")
-ADD_DEFINITIONS(-DHAVE_CONFIG_H -DENABLE_TRACE -D__ANDROID_API__=17)
+ADD_DEFINITIONS(-DHAVE_CONFIG_H
+                -DENABLE_TRACE
+                #-D__ANDROID_API__=17
+                -DHAVE_EXOSIP_DSCP
+                -DHAVE_EXOSIP_GET_VERSION)
 
 
 if(${ANDROID_ABI} STREQUAL "armeabi-v7a")
@@ -22,15 +25,17 @@ else()
     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
 endif()
 
+# header directory
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}/osip
                     ${CMAKE_CURRENT_SOURCE_DIR}/osip/include
                     ${CMAKE_CURRENT_SOURCE_DIR}/exosip
                     ${CMAKE_CURRENT_SOURCE_DIR}/exosip/include
-                    ${CMAKE_CURRENT_SOURCE_DIR}/cares)
+                    ${CMAKE_CURRENT_SOURCE_DIR}/cares
+                    ${CMAKE_CURRENT_SOURCE_DIR}/coreapi)
 
 
-
+# sources files
 set(OSIP2_SRC   ${CMAKE_CURRENT_SOURCE_DIR}/osip/src/osip2/fsm_misc.c
                 ${CMAKE_CURRENT_SOURCE_DIR}/osip/src/osip2/ict.c
                 ${CMAKE_CURRENT_SOURCE_DIR}/osip/src/osip2/ict_fsm.c
@@ -179,6 +184,23 @@ set(EXOSIP_SRC  ${CMAKE_CURRENT_SOURCE_DIR}/exosip/src/eXosip.c
                 ${CMAKE_CURRENT_SOURCE_DIR}/exosip/src/jpublish.c
                 ${CMAKE_CURRENT_SOURCE_DIR}/exosip/src/sdp_offans.c)
 
+set(COREAPI_SRC  ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/address.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/authentication.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/callbacks.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/linphonecall.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/linphonecore.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/logging.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/misc.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/mscommon.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/offeranswer.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/payloadtype.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/port.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/proxy.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/sal_api.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/sal_eXosip2.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/sal_eXosip2_presence.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/coreapi/sal_eXosip2_sdp.c)
+
 add_library( # Sets the name of the library.
              sip
 
@@ -195,8 +217,11 @@ add_library( # Sets the name of the library.
              # c-ares source files
              ${CARES_SRC}
 
-             # exosip source file
-             ${EXOSIP_SRC})
+             # exosip source files
+             ${EXOSIP_SRC}
+
+             # linphone coreapi files
+             ${COREAPI_SRC})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

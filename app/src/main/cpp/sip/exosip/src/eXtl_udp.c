@@ -987,7 +987,7 @@ _udp_tl_update_contact (struct eXosip_t *excontext, osip_message_t * req)
     }
   }
 
-  if (excontext->masquerade_via)
+	if (excontext->masquerade_via) {
     if (via!=NULL) {
         if (ainfo == NULL) {
           if (excontext->udp_firewall_port[0]=='\0') {
@@ -1024,6 +1024,7 @@ _udp_tl_update_contact (struct eXosip_t *excontext, osip_message_t * req)
             osip_message_force_update (req);
           }
 #endif
+			}
         }
     }
   return OSIP_SUCCESS;

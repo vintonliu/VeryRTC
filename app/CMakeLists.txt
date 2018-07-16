@@ -15,6 +15,7 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${AND
 INCLUDE(src/main/cpp/sip/osip/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/cares/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/exosip/CMakeLists.txt)
+INCLUDE(src/main/cpp/sip/coreapi/CMakeLists.txt)
 
 add_library( # Sets the name of the library.
              native-lib
@@ -49,6 +50,7 @@ target_link_libraries( # Specifies the target library.
                        osip2
                        cares
                        exosip
+                       coreapi
 
                        # Links the target library to the log library
                        # included in the NDK.

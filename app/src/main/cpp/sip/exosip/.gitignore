@@ -27,7 +27,6 @@ config.status
 configure
 libosip2.pc
 libtool
-exosip-config.h
 exosip-config.h.in
 scripts/config.guess
 scripts/config.sub

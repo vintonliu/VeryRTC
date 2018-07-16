@@ -27,7 +27,6 @@ config.status
 configure
 libosip2.pc
 libtool
-osip-config.h
 osip-config.h.in
 scripts/config.guess
 scripts/config.sub

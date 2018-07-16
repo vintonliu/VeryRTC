@@ -17,6 +17,8 @@
 #ifndef ARES_IPV6_H
 #define ARES_IPV6_H
 
+#include "ares_config.h"
+
 #ifndef HAVE_PF_INET6
 #define PF_INET6 AF_INET6
 #endif
