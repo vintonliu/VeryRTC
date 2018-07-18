@@ -761,6 +761,7 @@ _eXosip_guess_ip_for_destinationsock (struct eXosip_t *excontext, int family, in
 #include <sys/param.h>
 
 #include <stdio.h>
+#include <linux/in6.h>
 
 #ifdef HAVE_GETIFADDRS
 
@@ -4062,4 +4063,4 @@ eXosip_dnsutils_release (struct osip_naptr *naptr_record)
   return;
 }
 
-#endif
+#endif /* SRV_RECORD */

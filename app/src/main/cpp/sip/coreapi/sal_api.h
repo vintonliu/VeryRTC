@@ -143,12 +143,6 @@ typedef struct SalIceRemoteCandidate {
 #define SAL_MEDIA_DESCRIPTION_MAX_ICE_UFRAG_LEN 256
 #define SAL_MEDIA_DESCRIPTION_MAX_ICE_PWD_LEN 256
 
-//enum ortp_srtp_crypto_suite_t {
-//	AES_128_SHA1_80 = 1,
-//	AES_128_SHA1_32,
-//	AES_128_NO_AUTH,
-//	NO_CIPHER_SHA1_80
-//};
 typedef struct SalSrtpCryptoAlgo {
 	unsigned int tag;
 	enum ortp_srtp_crypto_suite_t algo;
@@ -204,6 +198,7 @@ typedef struct SalMessage{
 	const char *url;
 	const char *message_id;
 	time_t time;
+	bool_t ice_candidate;
 } SalMessage;
 
 #define SAL_MEDIA_DESCRIPTION_MAX_MESSAGE_ATTRIBUTES 5

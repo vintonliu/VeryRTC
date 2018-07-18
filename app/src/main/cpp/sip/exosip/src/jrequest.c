@@ -126,7 +126,7 @@ _eXosip_dialog_add_contact (struct eXosip_t *excontext, osip_message_t * request
     strcat (contact, ";ob");
     strcat (contact, ">");
   }
-  if (osip_strcasecmp (excontext->transport, "UDP") != 0) {
+  /*if (osip_strcasecmp (excontext->transport, "UDP") != 0)*/ {
     contact[strlen (contact) - 1] = '\0';
     strcat (contact, ";transport=");
     strcat (contact, excontext->transport);

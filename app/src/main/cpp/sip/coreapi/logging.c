@@ -62,7 +62,7 @@ int ortp_get_log_level_mask(void) {
 char * ortp_strdup_vprintf(const char *fmt, va_list ap)
 {
 	/* Guess we need no more than 100 bytes. */
-	int n, size = 200;
+	int n, size = 256;
 	char *p,*np;
 #ifndef WIN32
 	va_list cap;/*copy of our argument list: a va_list cannot be re-used (SIGSEGV on linux 64 bits)*/
@@ -90,14 +90,14 @@ char * ortp_strdup_vprintf(const char *fmt, va_list ap)
 		else		/* glibc 2.0 */
 			size *= 2;	/* twice the old size */
 		if ((np = (char *) ortp_realloc (p, size)) == NULL)
-		  {
-		    free(p);
-		    return NULL;
-		  }
+		{
+		  free(p);
+		  return NULL;
+		}
 		else
-		  {
-		    p = np;
-		  }
+		{
+		  p = np;
+		}
 	}
 }
 
@@ -129,7 +129,8 @@ void ortp_logv(int level, const char *fmt, va_list args)
 
 static void __ortp_logv_out(OrtpLogLevel lev, const char *fmt, va_list args){
 	const char *lname="undef";
-	char *msg;
+	char *msg = NULL;
+
 	if (__log_file==NULL) __log_file=stderr;
 	switch(lev){
 		case ORTP_DEBUG:
@@ -150,26 +151,28 @@ static void __ortp_logv_out(OrtpLogLevel lev, const char *fmt, va_list args){
 		default:
 			ortp_fatal("Bad level !");
 	}
+
 	msg = ortp_strdup_vprintf(fmt, args);
-	
+	if (msg != NULL)
+	{
 #if defined(_MSC_VER) && !defined(_WIN32_WCE)
 #ifdef UNICODE
-	{
-		WCHAR wUnicode[2048 * 2];
+		WCHAR wUnicode[4096 * 2];
 		int size;
 
-		size = MultiByteToWideChar(CP_UTF8, 0, msg, -1, wUnicode, 2048 * 2);
+		size = MultiByteToWideChar(CP_UTF8, 0, msg, -1, wUnicode, sizeof(wUnicode));
 		wUnicode[size - 2] = '\n';
 		wUnicode[size - 1] = '\0';
 		OutputDebugString(wUnicode);
-	}
 #else
-	OutputDebugString(msg);
-	OutputDebugString("\r\n");
+		OutputDebugString(msg);
+		OutputDebugString("\r\n");
 #endif
 #endif
 
-	fprintf(__log_file, "osip-%s-%s", lname, msg);
-	fflush(__log_file);
-	ortp_free(msg);
+		fprintf(__log_file, "osip-%s-%s", lname, msg);
+		fflush(__log_file);
+		ortp_free(msg);
+		msg = NULL;
+	}
 }

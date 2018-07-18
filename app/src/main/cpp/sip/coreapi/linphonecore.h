@@ -203,7 +203,7 @@ typedef struct _LinphoneCallLog LinphoneCallLog;
 /**
  * Enum describing type of media encryption types.
 **/
-typedef enum LinphoneMediaEncryption LinphoneMediaEncryption;
+//typedef enum LinphoneMediaEncryption LinphoneMediaEncryption;
 
 /*public: */
 LinphoneAddress *linphone_call_log_get_from(LinphoneCallLog *cl);
@@ -332,6 +332,9 @@ void *linphone_call_get_user_pointer(LinphoneCall *call);
 void linphone_call_set_user_pointer(LinphoneCall *call, void *user_pointer);
 LinphoneCallState linphone_call_get_transfer_state(LinphoneCall *call);
 
+/* Send Ice candidate via MESSAGE */
+int32_t linphone_call_send_candidate_message(LinphoneCall *call, const char* candidate);
+
 /**
  * Return TRUE if this call is currently part of a conference
  *@param call #LinphoneCall
@@ -404,8 +407,6 @@ int linphone_proxy_config_done(LinphoneProxyConfig *obj);
  *
  */
 void linphone_proxy_config_enable_publish(LinphoneProxyConfig *obj, bool_t val);
-void linphone_proxy_config_set_dial_escape_plus(LinphoneProxyConfig *cfg, bool_t val);
-void linphone_proxy_config_set_dial_prefix(LinphoneProxyConfig *cfg, const char *prefix);
 
 LinphoneRegistrationState linphone_proxy_config_get_state(const LinphoneProxyConfig *obj);
 bool_t linphone_proxy_config_is_registered(const LinphoneProxyConfig *obj);
@@ -421,9 +422,6 @@ void linphone_proxy_config_refresh_register(LinphoneProxyConfig *obj);
 const char *linphone_proxy_config_get_contact_parameters(const LinphoneProxyConfig *obj);
 void linphone_proxy_config_set_contact_parameters(LinphoneProxyConfig *obj, const char *contact_params);
 struct _LinphoneCore * linphone_proxy_config_get_core(const LinphoneProxyConfig *obj);
-
-bool_t linphone_proxy_config_get_dial_escape_plus(const LinphoneProxyConfig *cfg);
-const char * linphone_proxy_config_get_dial_prefix(const LinphoneProxyConfig *cfg);
 
 LinphoneReason linphone_proxy_config_get_error(const LinphoneProxyConfig *cfg);
 
@@ -559,7 +557,8 @@ typedef void (*CallLogUpdated)(struct _LinphoneCore *lc, struct _LinphoneCallLog
  * @param from #LinphoneAddress from
  * @param message incoming message
  *  */
-//typedef void (*TextMessageReceived)(LinphoneCore *lc, LinphoneChatRoom *room, const LinphoneAddress *from, const char *message);
+typedef void (*TextMessageReceived)(LinphoneCore *lc, const LinphoneAddress *from, const char *message);
+
 /**
  * Chat message callback prototype
  *
@@ -592,7 +591,7 @@ typedef struct _LinphoneVTable{
 	//NewSubscribtionRequestCb new_subscription_request; /**< Notify about pending subscription request */
 	AuthInfoRequested auth_info_requested; /**< Ask the application some authentication information */
 	CallLogUpdated call_log_updated; /**< Notifies that call log list has been updated */
-	//TextMessageReceived text_received; /** @deprecated, use #message_received instead <br> A text message has been received */
+	TextMessageReceived text_received; /** @deprecated, use #message_received instead <br> A text message has been received */
 	//MessageReceived message_received; /** a message is received, can be text or external body*/
 	DtmfReceived dtmf_received; /**< A dtmf has been received received */
 	ReferReceived refer_received; /**< An out of call refer was received */

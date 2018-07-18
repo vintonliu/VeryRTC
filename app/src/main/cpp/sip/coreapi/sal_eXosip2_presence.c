@@ -134,18 +134,25 @@ int sal_message_send(SalOp *op, const char *from, const char *to, const char* co
 		/* we are currently in communication with the destination */
 		eXosip_lock(sal->osipCtx);
 		//First we generate an INFO message to get the current call_id and a good cseq
-		eXosip_call_build_request(sal->osipCtx, op->did,"MESSAGE",&sip);
+		eXosip_call_build_request(sal->osipCtx, op->did, "MESSAGE", &sip);
 		if(sip == NULL)
 		{
 			ms_warning("could not get a build info to send MESSAGE, maybe no previous call established ?");
 			eXosip_unlock(sal->osipCtx);
 			return -1;
 		}
-		sal_exosip_add_custom_headers(sip,op->base.custom_headers);
+
+		//sal_exosip_add_custom_headers(sip, op->base.custom_headers);
+		
 		msg_add_current_date(sip);
-		osip_message_set_content_type(sip,content_type);
-		if (msg) osip_message_set_body(sip,msg,strlen(msg));
-		eXosip_call_send_request(sal->osipCtx, op->did,sip);
+		
+		if (msg) {
+			osip_message_set_content_type(sip, content_type);
+			osip_message_set_body(sip, msg, strlen(msg));
+		}
+
+		eXosip_call_send_request(sal->osipCtx, op->did,sip);		
+
 		eXosip_unlock(sal->osipCtx);
 	}
 	return 0;

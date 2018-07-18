@@ -3,13 +3,11 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-# cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.4.1)
 
-#set(CMAKE_C_FLAGS "-DHAVE_CONFIG_H -DENABLE_TRACE -D__ANDROID_API__=17")
-
-ADD_DEFINITIONS(-DHAVE_CONFIG_H
-                -DENABLE_TRACE
-                -D__ANDROID_API__=17)
+# ADD_DEFINITIONS(-DHAVE_CONFIG_H
+#                 -DENABLE_TRACE
+#                 -D__ANDROID_API__=17)
 
 if(${ANDROID_ABI} STREQUAL "armeabi-v7a")
     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
@@ -21,11 +19,14 @@ endif()
 
 set(OSIP_CUR_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp/sip/osip)
 
-include_directories(${OSIP_CUR_DIR}
-                    ${OSIP_CUR_DIR}/src
-                    ${OSIP_CUR_DIR}/include
-                    ${OSIP_CUR_DIR}/src/osip2
-                    ${OSIP_CUR_DIR}/src/osipparser2)
+# include_directories(${OSIP_CUR_DIR}
+#                     ${OSIP_CUR_DIR}/src
+#                     ${OSIP_CUR_DIR}/include
+#                     ${OSIP_CUR_DIR}/src/osip2
+#                     ${OSIP_CUR_DIR}/src/osipparser2)
+
+set(OSIP2_INC ${OSIP_CUR_DIR}
+              ${OSIP_CUR_DIR}/include)
 
 set(OSIP2_SRC   ${OSIP_CUR_DIR}/src/osip2/fsm_misc.c
                 ${OSIP_CUR_DIR}/src/osip2/ict.c
@@ -85,19 +86,19 @@ set(OSIPPARSER2_SRC ${OSIP_CUR_DIR}/src/osipparser2/osip_proxy_authorization.c
                     ${OSIP_CUR_DIR}/src/osipparser2/sdp_accessor.c
                     ${OSIP_CUR_DIR}/src/osipparser2/sdp_message.c)
 
-add_library ( # Sets the name of the library.
-              osip2
-
-              # Sets the library as a static library.
-              STATIC
-
-              # Provides a relative path to your source file(s).
-              # osip2 source files
-              ${OSIP2_SRC}
-
-              # osipparse source files
-              ${OSIPPARSER2_SRC})
-
+# add_library ( # Sets the name of the library.
+#               osip2
+#
+#               # Sets the library as a static library.
+#               STATIC
+#
+#               # Provides a relative path to your source file(s).
+#               # osip2 source files
+#               ${OSIP2_SRC}
+#
+#               # osipparse source files
+#               ${OSIPPARSER2_SRC})
+#
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -105,20 +106,20 @@ add_library ( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-find_library( # Sets the name of the path variable.
-              log-lib
-
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+# find_library( # Sets the name of the path variable.
+#               log-lib
+#
+#               # Specifies the name of the NDK library that
+#               # you want CMake to locate.
+#               log )
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
-                       osip2
-
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib})
+# target_link_libraries( # Specifies the target library.
+#                        osip2
+#
+#                        # Links the target library to the log library
+#                        # included in the NDK.
+#                        ${log-lib})

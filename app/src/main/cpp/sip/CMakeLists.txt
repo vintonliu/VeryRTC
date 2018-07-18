@@ -16,6 +16,7 @@ ADD_DEFINITIONS(-DHAVE_CONFIG_H
                 -DHAVE_EXOSIP_DSCP
                 -DHAVE_EXOSIP_GET_VERSION)
 
+set(CMAKE_C_FLAGS "-Wno-incompatible-pointer-types-discards-qualifiers")
 
 if(${ANDROID_ABI} STREQUAL "armeabi-v7a")
     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)

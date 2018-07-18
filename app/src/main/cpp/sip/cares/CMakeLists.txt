@@ -5,19 +5,21 @@
 
 # cmake_minimum_required(VERSION 3.4.1)
 
-set(CMAKE_C_FLAGS "-DHAVE_CONFIG_H")
+# ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 
-if(${ANDROID_ABI} STREQUAL "armeabi-v7a")
-    include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
-elseif(${ANDROID_ABI} STREQUAL "arm64-v8a")
-    include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)
-else()
-    include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
-endif()
+# if(${ANDROID_ABI} STREQUAL "armeabi-v7a")
+#     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
+# elseif(${ANDROID_ABI} STREQUAL "arm64-v8a")
+#     include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)
+# else()
+#     include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
+# endif()
 
 set(CARES_CUR_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp/sip/cares)
 
-include_directories(${CARES_CUR_DIR})
+# include_directories(${CARES_CUR_DIR})
+
+set(CARES_INC ${CARES_CUR_DIR})
 
 set(CARES_SRC   ${CARES_CUR_DIR}/ares__close_sockets.c
                 ${CARES_CUR_DIR}/ares__get_hostent.c
@@ -70,14 +72,14 @@ set(CARES_SRC   ${CARES_CUR_DIR}/ares__close_sockets.c
                 ${CARES_CUR_DIR}/windows_port.c)
 
 
-add_library ( # Sets the name of the library.
-              cares
-
-              # Sets the library as a static library.
-              STATIC
-
-              # Provides a relative path to your source file(s).
-              ${CARES_SRC})
+# add_library ( # Sets the name of the library.
+#               cares
+#
+#               # Sets the library as a static library.
+#               STATIC
+#
+#               # Provides a relative path to your source file(s).
+#               ${CARES_SRC})
 
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -86,20 +88,20 @@ add_library ( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-find_library( # Sets the name of the path variable.
-              log-lib
-
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+# find_library( # Sets the name of the path variable.
+#               log-lib
+#
+#               # Specifies the name of the NDK library that
+#               # you want CMake to locate.
+#               log )
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
-                       cares
-
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib})
+# target_link_libraries( # Specifies the target library.
+#                        cares
+#
+#                        # Links the target library to the log library
+#                        # included in the NDK.
+#                        ${log-lib})

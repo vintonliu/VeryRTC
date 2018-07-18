@@ -702,3 +702,22 @@ void linphone_call_set_transfer_state(LinphoneCall* call, LinphoneCallState stat
 bool_t linphone_call_is_in_conference(const LinphoneCall *call) {
 	return call->params.in_conference;
 }
+
+/**
+ * Send Ice candidate info via MESSAGE
+ */
+int32_t linphone_call_send_candidate_message(LinphoneCall *call, const char* candidate) {
+	if (call == NULL || candidate == NULL) {
+		return -1;
+	}
+	
+	const char *from = linphone_core_get_identity(call->core);
+	const char *to = linphone_call_get_remote_address_as_string(call);
+
+	sal_message_send(call->op, from, to, "application/json", candidate);
+
+	ortp_free(to);
+	to = NULL;
+
+	return 0;
+}

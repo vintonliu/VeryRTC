@@ -678,10 +678,12 @@ int sal_call(SalOp *h, const char *from, const char *to) {
 		return -1;
 	}
 	osip_message_set_allow(invite, "INVITE, ACK, CANCEL, OPTIONS, BYE, REFER, NOTIFY, MESSAGE, SUBSCRIBE, INFO");
-	if (h->base.contact) {
-		osip_list_set_empty(&invite->contacts, (void(*)(void*))osip_contact_free);
-		osip_message_set_contact(invite, h->base.contact);
-	}
+	
+	//if (h->base.contact) {
+	//	osip_list_set_empty(&invite->contacts, (void(*)(void*))osip_contact_free);
+	//	osip_message_set_contact(invite, h->base.contact);
+	//}
+
 	if (h->base.root->session_expires != 0) {
 		osip_message_set_header(invite, "Session-expires", "200");
 		osip_message_set_supported(invite, "timer");
@@ -689,7 +691,7 @@ int sal_call(SalOp *h, const char *from, const char *to) {
 	sal_exosip_add_custom_headers(invite, h->base.custom_headers);
 
 	/* sdp */
-	if (h->base.local_sdp != NULL) {
+	if (h->base.local_sdp != NULL && strlen(h->base.local_sdp)) {
 		int sdplen;
 		char clen[10];
 		sdplen = strlen(h->base.local_sdp);
@@ -781,7 +783,7 @@ int sal_call_accept(SalOp * h) {
 		osip_message_set_contact(msg, contact);
 	}
 	
-	if (h->base.local_sdp != NULL)
+	if (h->base.local_sdp != NULL && strlen(h->base.local_sdp) > 0)
 	{
 		int sdplen;
 		char clen[10];
@@ -1263,7 +1265,7 @@ static void handle_ack(Sal *sal, eXosip_event_t *ev) {
 				op->base.remote_sdp = NULL;
 			}
 			// get sdp string for webrtc
-			const char *remote_sdp = eXosip_get_sdp_body_str(ev->request);
+			const char *remote_sdp = eXosip_get_sdp_body_str(ev->response);
 			if (remote_sdp != NULL)
 			{
 				op->base.remote_sdp = ms_strdup(remote_sdp);
@@ -1341,7 +1343,7 @@ static void call_ringing(Sal *sal, eXosip_event_t *ev) {
 			op->base.remote_sdp = NULL;
 		}
 		// get sdp string for webrtc
-		const char *remote_sdp = eXosip_get_sdp_body_str(ev->request);
+		const char *remote_sdp = eXosip_get_sdp_body_str(ev->response);
 		if (remote_sdp != NULL)
 		{
 			op->base.remote_sdp = ms_strdup(remote_sdp);
@@ -1381,7 +1383,7 @@ static void call_accepted(Sal *sal, eXosip_event_t *ev) {
 			op->base.remote_sdp = NULL;
 		}
 		// get sdp string for webrtc
-		const char *remote_sdp = eXosip_get_sdp_body_str(ev->request);
+		const char *remote_sdp = eXosip_get_sdp_body_str(ev->response);
 		if (remote_sdp != NULL)
 		{
 			op->base.remote_sdp = ms_strdup(remote_sdp);
@@ -1955,6 +1957,8 @@ static void text_received(Sal *sal, eXosip_event_t *ev) {
 		ms_error("Could not get message because no content type");
 		return;
 	}
+
+	salmsg.ice_candidate = FALSE;
 	osip_from_to_str(ev->request->from, &from);
 	if (content_type->type
 		&& strcmp(content_type->type, "text") == 0
@@ -1979,6 +1983,19 @@ static void text_received(Sal *sal, eXosip_event_t *ev) {
 			, &external_body_url->gvalue[1]
 			, external_body_size = MIN(strlen(external_body_url->gvalue) - 1, sizeof(unquoted_external_body_url)));
 		unquoted_external_body_url[external_body_size - 1] = '\0';
+	}
+	else if (content_type->type
+		&& !strcmp(content_type->type, "application")
+		&& content_type->subtype
+		&& !strcmp(content_type->subtype, "json"))	{
+		osip_message_get_body(ev->request, 0, &body);
+		if (body == NULL) {
+			ms_error("Could not get json message from SIP body");
+			osip_free(from);
+			return;
+		}
+		msg = body->body;
+		salmsg.ice_candidate = TRUE;
 	}
 	else {
 		ms_warning("Unsupported content type [%s/%s]", content_type->type, content_type->subtype);
@@ -2638,7 +2655,7 @@ int sal_call_update(SalOp *h, const char *subject) {
 		osip_message_set_supported(reinvite, "timer");
 	}
 
-	if (h->base.local_sdp != NULL) {
+	if (h->base.local_sdp != NULL && strlen(h->base.local_sdp)) {
 		int sdplen;
 		char clen[10];
 		sdplen = strlen(h->base.local_sdp);

@@ -11,20 +11,60 @@ cmake_minimum_required(VERSION 3.4.1)
 # Gradle automatically packages shared libraries with your APK.
 
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI})
+set(NATIVE_DIR ${PROJECT_SOURCE_DIR}/src/main/cpp)
+
+set(CMAKE_C_FLAGS "-O2 -Wno-incompatible-pointer-types-discards-qualifiers")
+
+# if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+# set(CMAKE_C_FLAGS "-O2")
+# set(DCMAKE_CXX_FLAGS "-O2")
+# endif()
+
+ADD_DEFINITIONS(-DHAVE_CONFIG_H
+                -DENABLE_TRACE
+                -D__ANDROID_API__=17
+                -DHAVE_EXOSIP_DSCP
+                -DHAVE_EXOSIP_GET_VERSION)
+
 
 INCLUDE(src/main/cpp/sip/osip/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/cares/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/exosip/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/coreapi/CMakeLists.txt)
 
+include_directories(${NATIVE_DIR}
+                    ${NATIVE_DIR}/sip
+                    ${OSIP2_INC}
+                    ${EXOSIP_INC}
+                    ${COREAPI_INC}
+                    ${CARES_INC})
+
 add_library( # Sets the name of the library.
-             native-lib
+             Sip
 
              # Sets the library as a shared library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp )
+             # osip2 source files
+             ${OSIP2_SRC}
+
+             # osipparse source files
+             ${OSIPPARSER2_SRC}
+
+             # c-ares source files
+             ${CARES_SRC}
+
+             # exosip source files
+             ${EXOSIP_SRC}
+
+             # linphone coreapi files
+             ${COREAPI_SRC}
+
+             ${NATIVE_DIR}/SipClient.cpp
+             ${NATIVE_DIR}/SipChannelClientJni.cpp
+             ${NATIVE_DIR}/SignalingEventsJni.cpp
+             ${NATIVE_DIR}/jni_helper.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -44,13 +84,13 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib
+                       Sip
 
                        # Links the internal static librarys
-                       osip2
-                       cares
-                       exosip
-                       coreapi
+                       # osip2
+                       # cares
+                       # exosip
+                       # coreapi
 
                        # Links the target library to the log library
                        # included in the NDK.

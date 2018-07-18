@@ -29,10 +29,8 @@ android {
     }
 
     packagingOptions {
-        pickFirst 'lib/armeabi-v7a/libnative-lib.so'
-        pickFirst 'lib/arm64-v8a/libnative-lib.so'
-        pickFirst 'lib/armeabi-v7a/libsip.so'
-        pickFirst 'lib/arm64-v8a/libsip.so'
+        pickFirst 'lib/armeabi-v7a/libSip.so'
+        pickFirst 'lib/arm64-v8a/libSip.so'
     }
 }
 
