@@ -7,6 +7,18 @@ public class SipChannelClient {
         System.loadLibrary("libSip.so");
     }
 
+    public interface SipNativeObserver {
+        void onRegistered(boolean registered);
+        void onRegisterFailure(int reason);
+        void onCallIncoming(String from, String remote_sdp);
+        void onCallProcess();
+        void onCallRinging();
+        void onCallConnected(String remote_sdp);
+        void onCallEnded();
+        void onCallFailure(int reason);
+        void onRemoteIceCandidate(String candidate);
+    }
+
     private native long nativeCreateObserver(SipNativeObserver observer);
     private native void freeNativeObserver(long nativeObserver);
 
@@ -39,6 +51,10 @@ public class SipChannelClient {
         }
     }
 
+    /*
+    * Free native resources associated with this Sip Channel.
+    * Note that this method cannot be safely called from an observer callback
+    * */
     public void dispose() {
         freeNativeClient(nativeClient);
         freeNativeObserver(nativeObserver);

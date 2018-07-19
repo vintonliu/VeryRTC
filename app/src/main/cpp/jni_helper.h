@@ -22,6 +22,7 @@
 #define LOGW(...)
 #endif
 
+
 namespace mrtc {
 jint InitGlobalJniVariables(JavaVM *jvm);
 JNIEnv* GetEnv();

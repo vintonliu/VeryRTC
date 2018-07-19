@@ -8,27 +8,36 @@
 namespace mrtc {
 
 SignalingEventsJni::SignalingEventsJni(JNIEnv *jni, jobject j_observer) {
+    LOGI("%s ctor", __FUNCTION__);
     j_observer_global_ = NewGlobalRef(jni, j_observer);
     if (j_observer_global_) {
         j_observer_class_ = (jclass) NewGlobalRef(jni, GetObjectClass(jni, j_observer_global_));
     }
+    LOGI("%s Leave", __FUNCTION__);
 }
 
 SignalingEventsJni::~SignalingEventsJni() {
-    JNIEnv *jni = AttachCurrentThreadIfNeeded();
-    if (jni) {
+    LOGI("%s ~dtor", __FUNCTION__);
+
+    ScopedJni jni;
+
+    if (jni.GetEnv()) {
         if (j_observer_global_) {
-            DeleteGlobalRef(jni, j_observer_global_);
+            DeleteGlobalRef(jni.GetEnv(), j_observer_global_);
             j_observer_global_ = nullptr;
         }
         if (j_observer_class_) {
-            DeleteGlobalRef(jni, j_observer_class_);
+            DeleteGlobalRef(jni.GetEnv(), j_observer_class_);
             j_observer_class_ = nullptr;
         }
     }
+
+    LOGI("%s Leave", __FUNCTION__);
 }
 
 void SignalingEventsJni::onRegistered(bool registered) {
+    LOGI("%s registered = %s", __FUNCTION__, registered ? "true" : "false");
+
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onRegistered", "(Z)V");
@@ -36,6 +45,7 @@ void SignalingEventsJni::onRegistered(bool registered) {
 }
 
 void SignalingEventsJni::onRegisterFailure(RegisterReason reason) {
+    LOGI("%s reason = %d", __FUNCTION__, reason);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onRegisterFailure", "()V");
