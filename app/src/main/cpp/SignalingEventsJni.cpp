@@ -53,6 +53,7 @@ void SignalingEventsJni::onRegisterFailure(RegisterReason reason) {
 }
 
 void SignalingEventsJni::onCallProcess() {
+    LOGI("%s", __FUNCTION__);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onCallProcess", "()V");
@@ -60,6 +61,7 @@ void SignalingEventsJni::onCallProcess() {
 }
 
 void SignalingEventsJni::onCallRinging() {
+    LOGI("%s", __FUNCTION__);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onCallRinging", "()V");
@@ -67,6 +69,7 @@ void SignalingEventsJni::onCallRinging() {
 }
 
 void SignalingEventsJni::onCallConnected(const SignalingParameters &params) {
+    LOGI("%s", __FUNCTION__);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onCallConnected",
@@ -77,6 +80,7 @@ void SignalingEventsJni::onCallConnected(const SignalingParameters &params) {
 }
 
 void SignalingEventsJni::onCallIncoming(const SignalingParameters &params) {
+    LOGI("%s", __FUNCTION__);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onCallIncoming",
@@ -86,6 +90,7 @@ void SignalingEventsJni::onCallIncoming(const SignalingParameters &params) {
 }
 
 void SignalingEventsJni::onCallEnded() {
+    LOGI("%s", __FUNCTION__);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onCallEnded", "()V");
@@ -93,6 +98,7 @@ void SignalingEventsJni::onCallEnded() {
 }
 
 void SignalingEventsJni::onCallFailure(CallReason reason) {
+    LOGI("%s", __FUNCTION__);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onCallFailure", "(I)V");

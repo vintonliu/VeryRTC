@@ -4,7 +4,7 @@ import android.util.Log;
 
 public class SipChannelClient {
     static {
-        System.loadLibrary("libSip.so");
+        System.loadLibrary("Sip");
     }
 
     public interface SipNativeObserver {

@@ -67,7 +67,7 @@ import java.util.Set;
  */
 public class CallActivity extends Activity implements AppRTCClient.SignalingEvents,
                                                       PeerConnectionClient.PeerConnectionEvents,
-                                                      CallFragment.OnCallEvents {
+                                                      OnCallEvents {
   private static final String TAG = "CallRTCClient";
 
   // Fix for devices running old Android versions not finding the libraries.
@@ -531,6 +531,12 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
   }
 
   // CallFragment.OnCallEvents interface implementation.
+
+  @Override
+  public void onCallAnswer() {
+
+  }
+
   @Override
   public void onCallHangUp() {
     disconnect();

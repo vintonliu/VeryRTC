@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    tools:context=".LoginActivity">
+
+    <LinearLayout
+        android:id="@+id/llLoginPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textSize="20sp"
+            android:text="@string/prompt_login"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <EditText
+                android:id="@+id/edtUserName"
+                android:hint="@string/prompt_username"
+                android:inputType="text"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:textSize="20sp"
+                android:textColor="#333"
+                android:gravity="center"
+                android:text="1003"
+                android:layout_weight="1" />
+
+            <EditText
+                android:id="@+id/edtPassword"
+                android:hint="@string/prompt_password"
+                android:inputType="text"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:textSize="20sp"
+                android:textColor="#333"
+                android:gravity="center"
+                android:text="1003"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="@string/action_sign_in_short"
+            android:layout_marginBottom="35dp"
+            android:onClick="doLogin"/>
+
+        <TextView
+            android:id="@+id/tvLoginTip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="Please wait a moment .... "/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llLogonPannel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:visibility="gone"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:gravity="center_horizontal"
+            android:background="@color/colorRed">
+            <TextView
+                android:id="@+id/tvUsername"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:textSize="20sp"
+                android:textColor="@color/colorWhite"
+                android:text="1003"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/edtCallee"
+                    android:hint="@string/prompt_callee"
+                    android:inputType="text"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#333"
+                    android:gravity="center"
+                    android:layout_weight="0.8"
+                    android:text="1008" />
+
+                <ImageButton
+                    android:id="@+id/btnStartCall"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginRight="16dp"
+                    android:contentDescription="@string/connect_description"
+                    android:background="@android:drawable/sym_action_call"
+                    android:onClick="doStartCall"/>
+            </LinearLayout>
+            <TextView
+                android:id="@+id/room_listview_description"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:lines="1"
+                android:maxLines="1"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/favorites"
+                android:gravity="center_vertical"/>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <ListView
+                    android:id="@+id/room_listview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:drawSelectorOnTop="false" />
+
+                <TextView
+                    android:id="@android:id/empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="@string/no_favorites" />
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
