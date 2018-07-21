@@ -2,12 +2,14 @@ package club.apprtc.veryrtc;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.webrtc.IceCandidate;
 import org.webrtc.SessionDescription;
 
+import java.util.LinkedList;
 import java.util.Vector;
 
 public class SipClientAPI implements SipChannelClient.SipNativeObserver {
@@ -21,10 +23,24 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     private SipChannelClient sipclient;
     private Vector<SipClientListener> listeners;
     private final Handler handler;
+    private boolean isRegistered = false;
+
+    // Queued local ICE candidates are consumed only after received remote
+    // ringing or connected message. Similarly local ICE candidates are sent to
+    // remote peer after received ringing or connected message.
+    private LinkedList<IceCandidate> queuedCallerCandidates = null;
+    private enum SipCallState {
+        CALL_IDLE,
+        CALL_OUTGOING_INIT,
+        CALL_OUTGOING_RINGING,
+        CALL_OUTGOING_EARLY_RINGING,
+        CALL_INCOMING,
+        CALL_CONNECTED
+    }
+    SipCallState callState = SipCallState.CALL_IDLE;
+
 
     public SipClientAPI(SipClientListener listener) {
-
-
         listeners = new Vector<>();
         listeners.add(listener);
 
@@ -71,6 +87,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     }
 
     public boolean doUnRegister() {
+        isRegistered = false;
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -81,14 +98,16 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     }
 
     public boolean doStartCall(final String callee, final SessionDescription local_sdp) {
-        if (callee.isEmpty() || local_sdp == null) {
+        if (!isRegistered || callee.isEmpty() || local_sdp == null) {
             return false;
         }
+        queuedCallerCandidates = new LinkedList<IceCandidate>();
 
         handler.post(new Runnable() {
             @Override
             public void run() {
                 sipclient.pub_doStartCall(callee, local_sdp.toString());
+                callState = SipCallState.CALL_OUTGOING_INIT;
             }
         });
         return true;
@@ -103,6 +122,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             @Override
             public void run() {
                 sipclient.pub_doAnswer(local_sdp.toString());
+                callState = SipCallState.CALL_CONNECTED;
             }
         });
         return true;
@@ -113,6 +133,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             @Override
             public void run() {
                 sipclient.pub_doHangup();
+                callState = SipCallState.CALL_IDLE;
             }
         });
         return true;
@@ -123,23 +144,30 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             return false;
         }
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                JSONObject json = new JSONObject();
-                jsonPut(json, kCandidateSdpMlineIndexName, candidate.sdpMLineIndex);
-                jsonPut(json, kCandidateSdpMidName, candidate.sdpMid);
-                jsonPut(json, kCandidateSdpName, candidate.sdp);
-
-                sipclient.pub_doSendLocalCandidate(json.toString());
+        if (callState == SipCallState.CALL_OUTGOING_INIT) {
+            if (queuedCallerCandidates != null) {
+                queuedCallerCandidates.add(candidate);
             }
-        });
+        } else {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject json = new JSONObject();
+                    jsonPut(json, kCandidateSdpMlineIndexName, candidate.sdpMLineIndex);
+                    jsonPut(json, kCandidateSdpMidName, candidate.sdpMid);
+                    jsonPut(json, kCandidateSdpName, candidate.sdp);
+
+                    sipclient.pub_doSendLocalCandidate(json.toString());
+                }
+            });
+        }
 
         return true;
     }
 
     @Override
     public void onRegistered(boolean registered) {
+        isRegistered = registered;
         synchronized (listeners) {
             for (SipClientListener listener : listeners) {
                 listener.onRegistered(registered);
@@ -149,6 +177,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onRegisterFailure(int reason) {
+        isRegistered = false;
         synchronized (listeners) {
             for (SipClientListener listener : listeners) {
                 listener.onRegisterFailure(reason);
@@ -159,6 +188,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     @Override
     public void onCallIncoming(String from, String remote_sdp) {
         synchronized (listeners) {
+            callState = SipCallState.CALL_INCOMING;
             for (SipClientListener listener: listeners) {
                 if (remote_sdp.isEmpty()) {
                     listener.onCallIncoming(from, null);
@@ -185,6 +215,9 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                 listener.onCallRinging(null);
             }
         }
+
+        callState = SipCallState.CALL_OUTGOING_RINGING;
+        drainCandidates();
     }
 
     @Override
@@ -198,24 +231,35 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                 }
             }
         }
+
+        if ((callState != SipCallState.CALL_IDLE) &&
+            (callState != SipCallState.CALL_INCOMING)) {
+            drainCandidates();
+        }
+        callState = SipCallState.CALL_CONNECTED;
     }
 
     @Override
     public void onCallEnded() {
         synchronized (listeners) {
+            callState = SipCallState.CALL_IDLE;
             for (SipClientListener listener: listeners) {
                 listener.onCallEnded();
             }
         }
+        queuedCallerCandidates = null;
     }
 
     @Override
     public void onCallFailure(int reason) {
         synchronized (listeners) {
+            callState = SipCallState.CALL_IDLE;
             for (SipClientListener listener: listeners) {
                 listener.onCallFailure(reason);
             }
         }
+
+        queuedCallerCandidates = null;
     }
 
     @Override
@@ -256,5 +300,31 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void drainCandidates() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (queuedCallerCandidates != null) {
+                        Log.d(TAG, "Send local candidates to remote");
+                        for (IceCandidate candidate : queuedCallerCandidates) {
+                            JSONObject json = new JSONObject();
+                            jsonPut(json, kCandidateSdpMlineIndexName, candidate.sdpMLineIndex);
+                            jsonPut(json, kCandidateSdpMidName, candidate.sdpMid);
+                            jsonPut(json, kCandidateSdpName, candidate.sdp);
+
+                            sipclient.pub_doSendLocalCandidate(json.toString());
+
+                            Thread.sleep(100);
+                        }
+                        queuedCallerCandidates = null;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }
