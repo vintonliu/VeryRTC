@@ -39,22 +39,25 @@ jlong GetLongField(JNIEnv* jni, jobject object, jfieldID id);
 jclass GetObjectClass(JNIEnv* jni, jobject object);
 jstring JavaStringFromStdString(JNIEnv* jni, const std::string& native);
 std::string JavaToStdString(JNIEnv* jni, const jstring& j_string);
-JNIEnv* AttachCurrentThreadIfNeeded();
+JNIEnv* AttachCurrentThreadIfNeeded(bool &attached);
 void ThreadDestructor(JNIEnv *jni);
 
 class ScopedJni {
 public:
     ScopedJni() {
-        jni_ = AttachCurrentThreadIfNeeded();
+        jni_ = AttachCurrentThreadIfNeeded(isAttached);
     }
 
     ~ScopedJni() {
-        ThreadDestructor(jni_);
+        if (isAttached) {
+            ThreadDestructor(jni_);
+        }
     }
 
     JNIEnv *GetEnv() { return jni_; }
 
 private:
+    bool isAttached;
     JNIEnv *jni_;
 };
 } /* namespace mrtc */

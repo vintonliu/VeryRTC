@@ -54,7 +54,8 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         });
     }
 
-    public boolean doRegister(String proxy, String display, String username, String userpwd) {
+    public boolean doRegister(final String proxy, final String display,
+                              final String username, final String userpwd) {
         if (proxy.isEmpty() || username.isEmpty() || userpwd.isEmpty()) {
             return false;
         }
@@ -79,7 +80,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         return true;
     }
 
-    public boolean doStartCall(String callee, final SessionDescription local_sdp) {
+    public boolean doStartCall(final String callee, final SessionDescription local_sdp) {
         if (callee.isEmpty() || local_sdp == null) {
             return false;
         }

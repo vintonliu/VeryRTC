@@ -7,6 +7,8 @@ public class SipChannelClient {
         System.loadLibrary("Sip");
     }
 
+    private final static String TAG = "SipChannel";
+
     public interface SipNativeObserver {
         void onRegistered(boolean registered);
         void onRegisterFailure(int reason);
@@ -38,8 +40,6 @@ public class SipChannelClient {
 
     private native boolean doSendCandidate(String candidate);
 
-    private final static String TAG = "SipChannel";
-
     private final long nativeObserver;
     private final long nativeClient;
     public SipChannelClient(SipNativeObserver observer) {
@@ -56,6 +56,7 @@ public class SipChannelClient {
     * Note that this method cannot be safely called from an observer callback
     * */
     public void dispose() {
+        Log.i(TAG, "dispose() free native resources");
         freeNativeClient(nativeClient);
         freeNativeObserver(nativeObserver);
     }

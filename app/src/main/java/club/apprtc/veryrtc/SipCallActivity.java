@@ -796,7 +796,7 @@ public class SipCallActivity extends Activity implements SipClientListener,
 
     // -----Implementation of SipClientListener ---------------
     @Override
-    public void onRegistered(boolean registered) {
+    public void onRegistered(final boolean registered) {
         if (!registered) {
             disconnect();
             callState = CallState.CALL_IDLE;
@@ -804,7 +804,7 @@ public class SipCallActivity extends Activity implements SipClientListener,
     }
 
     @Override
-    public void onRegisterFailure(int reason) {
+    public void onRegisterFailure(final int reason) {
 
     }
 
@@ -830,7 +830,7 @@ public class SipCallActivity extends Activity implements SipClientListener,
     }
 
     @Override
-    public void onCallIncoming(String from, final SessionDescription remote_sdp) {
+    public void onCallIncoming(final String from, final SessionDescription remote_sdp) {
         callStartedTimeMs = System.currentTimeMillis();
         runOnUiThread(new Runnable() {
             @Override
@@ -886,7 +886,7 @@ public class SipCallActivity extends Activity implements SipClientListener,
     }
 
     @Override
-    public void onCallFailure(int reason) {
+    public void onCallFailure(final int reason) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

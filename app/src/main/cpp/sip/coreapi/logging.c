@@ -19,7 +19,10 @@
 
 
 #include "logging.h"
-
+#ifdef ANDROID
+#include <android/log.h>
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "SipJni", __VA_ARGS__))
+#endif
 
 static FILE *__log_file=0;
 
@@ -168,6 +171,9 @@ static void __ortp_logv_out(OrtpLogLevel lev, const char *fmt, va_list args){
 		OutputDebugString(msg);
 		OutputDebugString("\r\n");
 #endif
+#endif
+#ifdef ANDROID  //jkh
+		LOGI("%s", msg);
 #endif
 
 		fprintf(__log_file, "osip-%s-%s", lname, msg);

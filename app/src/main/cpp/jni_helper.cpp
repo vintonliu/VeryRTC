@@ -127,13 +127,13 @@ std::string JavaToStdString(JNIEnv* jni, const jstring& j_string) {
     return std::string(buf.begin(), buf.end());
 }
 
-JNIEnv* AttachCurrentThreadIfNeeded() {
+JNIEnv* AttachCurrentThreadIfNeeded(bool &attached) {
+    attached = false;
     JNIEnv *jni = GetEnv();
     if (jni) {
         return jni;
     }
 
-    bool isAttached = false;
     JNIEnv* env = nullptr;
     int status = g_jvm->AttachCurrentThread(&env, NULL);
     if(status < 0) {
@@ -142,7 +142,7 @@ JNIEnv* AttachCurrentThreadIfNeeded() {
         return nullptr;
     }
     jni = reinterpret_cast<JNIEnv*>(env);
-    isAttached = true;
+    attached = true;
 
     return jni;
 }

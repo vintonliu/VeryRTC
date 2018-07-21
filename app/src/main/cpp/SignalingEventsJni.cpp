@@ -113,6 +113,7 @@ void SignalingEventsJni::onRemoteDescription(const std::string &sdp) {
 }
 
 void SignalingEventsJni::onRemoteIceCandidate(const std::string &candidate) {
+    LOGI("%s", __FUNCTION__);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onRemoteIceCandidate", "(Ljava/lang/String;)V");

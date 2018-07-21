@@ -577,7 +577,7 @@ public class LoginActivity extends AppCompatActivity implements SipClientListene
     }
 
     @Override
-    public void onRegistered(boolean registered) {
+    public void onRegistered(final boolean registered) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -597,7 +597,7 @@ public class LoginActivity extends AppCompatActivity implements SipClientListene
     }
 
     @Override
-    public void onRegisterFailure(int reason) {
+    public void onRegisterFailure(final int reason) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -617,7 +617,7 @@ public class LoginActivity extends AppCompatActivity implements SipClientListene
     }
 
     @Override
-    public void onCallIncoming(String from, final SessionDescription remote_sdp) {
+    public void onCallIncoming(final String from, final SessionDescription remote_sdp) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -643,7 +643,7 @@ public class LoginActivity extends AppCompatActivity implements SipClientListene
     }
 
     @Override
-    public void onCallFailure(int reason) {
+    public void onCallFailure(final int reason) {
 
     }
 

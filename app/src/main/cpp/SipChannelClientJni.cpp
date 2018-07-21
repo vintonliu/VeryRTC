@@ -39,6 +39,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
 JNIEXPORT jlong JNICALL Java_club_apprtc_veryrtc_SipChannelClient_nativeCreateObserver
         (JNIEnv *jni, jobject thiz, jobject j_observer)
 {
+    LOGI("%s", __FUNCTION__);
     return (jlong)new SignalingEventsJni(jni, j_observer);
 }
 
@@ -50,6 +51,7 @@ JNIEXPORT jlong JNICALL Java_club_apprtc_veryrtc_SipChannelClient_nativeCreateOb
 JNIEXPORT void JNICALL Java_club_apprtc_veryrtc_SipChannelClient_freeNativeObserver
         (JNIEnv *jni, jobject, jlong j_observer)
 {
+    LOGI("%s", __FUNCTION__);
     SignalingEventsJni *se = reinterpret_cast<SignalingEventsJni*>(j_observer);
     delete se;
     se = nullptr;
@@ -64,6 +66,7 @@ JNIEXPORT void JNICALL Java_club_apprtc_veryrtc_SipChannelClient_freeNativeObser
 JNIEXPORT jlong JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doCreateClient
         (JNIEnv *jni, jobject thiz, jlong j_observer)
 {
+    LOGI("%s", __FUNCTION__);
     SignalingEventsJni *se = reinterpret_cast<SignalingEventsJni*>(j_observer);
     return (jlong)new SipClient(se);
 }
@@ -76,6 +79,7 @@ JNIEXPORT jlong JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doCreateClient
 JNIEXPORT void JNICALL Java_club_apprtc_veryrtc_SipChannelClient_freeNativeClient
         (JNIEnv *, jobject, jlong j_sip)
 {
+    LOGI("%s", __FUNCTION__);
     SipClient *sipClient = reinterpret_cast<SipClient*>(j_sip);
     delete sipClient;
     sipClient = nullptr;
@@ -90,6 +94,7 @@ JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doRegister
         (JNIEnv *jni, jobject j_sip, jstring j_proxy,
          jstring j_display, jstring j_username, jstring j_userpwd)
 {
+    LOGI("%s", __FUNCTION__);
     SipClient *sipClient = ExtractNativeSipClient(jni, j_sip);
 
     std::string proxy = JavaToStdString(jni, j_proxy);
@@ -108,6 +113,7 @@ JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doRegister
 JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doUnRegister
         (JNIEnv *jni, jobject j_sip)
 {
+    LOGI("%s", __FUNCTION__);
     SipClient *sipClient = ExtractNativeSipClient(jni, j_sip);
 
     return (jboolean)sipClient->doUnRegister();
@@ -121,6 +127,7 @@ JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doUnRegiste
 JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doStartCall
         (JNIEnv *jni, jobject j_sip, jstring j_to, jstring j_sdp)
 {
+    LOGI("%s", __FUNCTION__);
     SipClient *sipClient = ExtractNativeSipClient(jni, j_sip);
     std::string to = JavaToStdString(jni, j_to);
     std::string sdp = JavaToStdString(jni, j_sdp);
@@ -136,6 +143,7 @@ JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doStartCall
 JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doAnswer
         (JNIEnv *jni, jobject j_sip, jstring j_sdp)
 {
+    LOGI("%s", __FUNCTION__);
     SipClient *sipClient = ExtractNativeSipClient(jni, j_sip);
     std::string sdp = JavaToStdString(jni, j_sdp);
     return (jboolean)sipClient->doAcceptCall(sdp);
@@ -149,6 +157,7 @@ JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doAnswer
 JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doHangup
         (JNIEnv *jni, jobject j_sip)
 {
+    LOGI("%s", __FUNCTION__);
     SipClient *sipClient = ExtractNativeSipClient(jni, j_sip);
 
     return (jboolean)sipClient->doHangup();
@@ -162,6 +171,7 @@ JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doHangup
 JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doSendCandidate
         (JNIEnv *jni, jobject j_sip, jstring j_candidate)
 {
+    LOGI("%s", __FUNCTION__);
     SipClient *sipClient = ExtractNativeSipClient(jni, j_sip);
     std::string candidate = JavaToStdString(jni, j_candidate);
     return (jboolean)sipClient->doSendCandidate(candidate);
