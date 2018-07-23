@@ -20,7 +20,8 @@ set(CMAKE_C_FLAGS "-O2 -Wno-incompatible-pointer-types-discards-qualifiers")
 # set(DCMAKE_CXX_FLAGS "-O2")
 # endif()
 
-ADD_DEFINITIONS(-DHAVE_CONFIG_H
+ADD_DEFINITIONS(-DANDROID
+                -DHAVE_CONFIG_H
                 -DENABLE_TRACE
                 -D__ANDROID_API__=17
                 -DHAVE_EXOSIP_DSCP

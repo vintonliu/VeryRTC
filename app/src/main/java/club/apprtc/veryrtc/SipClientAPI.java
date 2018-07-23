@@ -106,7 +106,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                sipclient.pub_doStartCall(callee, local_sdp.toString());
+                sipclient.pub_doStartCall(callee, local_sdp.getDescription());
                 callState = SipCallState.CALL_OUTGOING_INIT;
             }
         });
@@ -121,7 +121,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                sipclient.pub_doAnswer(local_sdp.toString());
+                sipclient.pub_doAnswer(local_sdp.getDescription());
                 callState = SipCallState.CALL_CONNECTED;
             }
         });
@@ -193,7 +193,11 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                 if (remote_sdp.isEmpty()) {
                     listener.onCallIncoming(from, null);
                 } else {
-                    listener.onCallIncoming(from, new SessionDescription(remote_sdp));
+                    String type = "OFFER";
+                    SessionDescription sdp = new SessionDescription(
+                            SessionDescription.Type.fromCanonicalForm(type),
+                            remote_sdp);
+                    listener.onCallIncoming(from, sdp);
                 }
             }
         }
@@ -227,7 +231,11 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                 if (remote_sdp.isEmpty()) {
                     listener.onCallConnected(null);
                 } else {
-                    listener.onCallConnected(new SessionDescription(remote_sdp));
+                    String type = "ANSWER";
+                    SessionDescription sdp = new SessionDescription(
+                            SessionDescription.Type.fromCanonicalForm(type),
+                            remote_sdp);
+                    listener.onCallConnected(sdp);
                 }
             }
         }
