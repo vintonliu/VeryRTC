@@ -76,7 +76,7 @@ void SignalingEventsJni::onCallConnected(const SignalingParameters &params) {
                               "(Ljava/lang/String;)V");
     jstring from = JavaStringFromStdString(jni.GetEnv(), params.from);
     jstring sdp = JavaStringFromStdString(jni.GetEnv(), params.rsdp);
-    jni.GetEnv()->CallVoidMethod(j_observer_global_, m, from, sdp);
+    jni.GetEnv()->CallVoidMethod(j_observer_global_, m, sdp);
 }
 
 void SignalingEventsJni::onCallIncoming(const SignalingParameters &params) {
@@ -85,8 +85,10 @@ void SignalingEventsJni::onCallIncoming(const SignalingParameters &params) {
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
                               "onCallIncoming",
                               "(Ljava/lang/String;Ljava/lang/String;)V");
+    jstring from = JavaStringFromStdString(jni.GetEnv(), params.from);
     jstring sdp = JavaStringFromStdString(jni.GetEnv(), params.rsdp);
-    jni.GetEnv()->CallVoidMethod(j_observer_global_, m, sdp);
+
+    jni.GetEnv()->CallVoidMethod(j_observer_global_, m, from, sdp);
 }
 
 void SignalingEventsJni::onCallEnded() {

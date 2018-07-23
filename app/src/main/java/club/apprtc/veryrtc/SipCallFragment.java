@@ -63,6 +63,7 @@ public class SipCallFragment extends Fragment {
     ll_incoming_container = (LinearLayout) controlView.findViewById(R.id.buttons_incoming_container);
     ll_call_container = (LinearLayout) controlView.findViewById(R.id.buttons_call_container);
     ll_incoming_container.setVisibility(View.GONE);
+    ll_call_container.setVisibility(View.VISIBLE);
 
     // Add buttons click events.
     disconnectButton.setOnClickListener(new View.OnClickListener() {
@@ -148,7 +149,7 @@ public class SipCallFragment extends Fragment {
 
     if (outgoing) {
       ll_incoming_container.setVisibility(View.GONE);
-      ll_call_container.setVisibility(View.GONE);
+      ll_call_container.setVisibility(View.VISIBLE);
     } else {
       ll_incoming_container.setVisibility(View.VISIBLE);
       ll_call_container.setVisibility(View.GONE);

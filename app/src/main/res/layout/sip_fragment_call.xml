@@ -21,7 +21,8 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_above="@+id/capture_format_text_call"
-        android:layout_marginBottom="32dp">
+        android:layout_marginBottom="32dp"
+        android:visibility="gone">
         <ImageButton
             android:id="@+id/button_call_reject"
             android:background="@drawable/disconnect"
@@ -45,8 +46,7 @@
            android:layout_marginBottom="32dp"
            android:layout_centerHorizontal="true"
            android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-            android:visibility="gone">
+           android:layout_height="wrap_content">
 
        <ImageButton
            android:id="@+id/button_call_disconnect"

@@ -474,39 +474,39 @@ class CpuMonitor {
     long userTime = 0;
     long systemTime = 0;
     long idleTime = 0;
-    try {
-      BufferedReader reader = new BufferedReader(new FileReader("/proc/stat"));
-      try {
-        // line should contain something like this:
-        // cpu  5093818 271838 3512830 165934119 101374 447076 272086 0 0 0
-        //       user    nice  system     idle   iowait  irq   softirq
-        String line = reader.readLine();
-        String[] lines = line.split("\\s+");
-        int length = lines.length;
-        if (length >= 5) {
-          userTime = parseLong(lines[1]); // user
-          userTime += parseLong(lines[2]); // nice
-          systemTime = parseLong(lines[3]); // system
-          idleTime = parseLong(lines[4]); // idle
-        }
-        if (length >= 8) {
-          userTime += parseLong(lines[5]); // iowait
-          systemTime += parseLong(lines[6]); // irq
-          systemTime += parseLong(lines[7]); // softirq
-        }
-      } catch (Exception e) {
-        Log.e(TAG, "Problems parsing /proc/stat", e);
-        return null;
-      } finally {
-        reader.close();
-      }
-    } catch (FileNotFoundException e) {
-      Log.e(TAG, "Cannot open /proc/stat for reading", e);
-      return null;
-    } catch (IOException e) {
-      Log.e(TAG, "Problems reading /proc/stat", e);
-      return null;
-    }
+//    try {
+//      BufferedReader reader = new BufferedReader(new FileReader("/proc/stat"));
+//      try {
+//        // line should contain something like this:
+//        // cpu  5093818 271838 3512830 165934119 101374 447076 272086 0 0 0
+//        //       user    nice  system     idle   iowait  irq   softirq
+//        String line = reader.readLine();
+//        String[] lines = line.split("\\s+");
+//        int length = lines.length;
+//        if (length >= 5) {
+//          userTime = parseLong(lines[1]); // user
+//          userTime += parseLong(lines[2]); // nice
+//          systemTime = parseLong(lines[3]); // system
+//          idleTime = parseLong(lines[4]); // idle
+//        }
+//        if (length >= 8) {
+//          userTime += parseLong(lines[5]); // iowait
+//          systemTime += parseLong(lines[6]); // irq
+//          systemTime += parseLong(lines[7]); // softirq
+//        }
+//      } catch (Exception e) {
+//        Log.e(TAG, "Problems parsing /proc/stat", e);
+//        return null;
+//      } finally {
+//        reader.close();
+//      }
+//    } catch (FileNotFoundException e) {
+//      Log.e(TAG, "Cannot open /proc/stat for reading", e);
+//      return null;
+//    } catch (IOException e) {
+//      Log.e(TAG, "Problems reading /proc/stat", e);
+//      return null;
+//    }
     return new ProcStat(userTime, systemTime, idleTime);
   }
 }
