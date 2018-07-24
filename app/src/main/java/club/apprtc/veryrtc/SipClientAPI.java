@@ -30,16 +30,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     // ringing or connected message. Similarly local ICE candidates are sent to
     // remote peer after received ringing or connected message.
     private LinkedList<IceCandidate> queuedCallerCandidates = null;
-    private enum SipCallState {
-        CALL_IDLE,
-        CALL_OUTGOING_INIT,
-        CALL_OUTGOING_RINGING,
-        CALL_OUTGOING_EARLY_RINGING,
-        CALL_INCOMING,
-        CALL_CONNECTED
-    }
-    SipCallState callState = SipCallState.CALL_IDLE;
-
 
     public SipClientAPI(SipClientListener listener) {
         listeners = new Vector<>();
@@ -111,7 +101,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             }
         });
 
-        callState = SipCallState.CALL_OUTGOING_INIT;
         isInitiator = true;
         return true;
     }
@@ -125,7 +114,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             @Override
             public void run() {
                 sipclient.pub_doAnswer(local_sdp.getDescription());
-                callState = SipCallState.CALL_CONNECTED;
             }
         });
         return true;
@@ -136,7 +124,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             @Override
             public void run() {
                 sipclient.pub_doHangup();
-                callState = SipCallState.CALL_IDLE;
             }
         });
         return true;
@@ -190,7 +177,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallIncoming(String from, String remote_sdp) {
-        callState = SipCallState.CALL_INCOMING;
         isInitiator = false;
 
         synchronized (listeners) {
@@ -219,8 +205,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallRinging() {
-        callState = SipCallState.CALL_OUTGOING_RINGING;
-
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
                 listener.onCallRinging(null);
@@ -230,15 +214,12 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallConnected(String remote_sdp) {
-        callState = SipCallState.CALL_CONNECTED;
-
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
                 if (remote_sdp.isEmpty()) {
                     listener.onCallConnected(null);
                 } else {
-                    if (callState == SipCallState.CALL_OUTGOING_RINGING ||
-                        callState == SipCallState.CALL_OUTGOING_INIT) {
+                    if (isInitiator) {
                         String type = "ANSWER";
                         SessionDescription sdp = new SessionDescription(
                                 SessionDescription.Type.fromCanonicalForm(type),
@@ -257,7 +238,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallEnded() {
-        callState = SipCallState.CALL_IDLE;
         queuedCallerCandidates = null;
 
         synchronized (listeners) {
@@ -269,7 +249,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallFailure(int reason) {
-        callState = SipCallState.CALL_IDLE;
         queuedCallerCandidates = null;
 
         synchronized (listeners) {
