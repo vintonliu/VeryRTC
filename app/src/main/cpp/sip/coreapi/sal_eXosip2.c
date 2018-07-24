@@ -1517,9 +1517,9 @@ static bool_t process_authentication(Sal *sal, eXosip_event_t *ev) {
 		return TRUE;
 	}
 
-	eXosip_lock(sal->osipCtx);
-	eXosip_default_action(sal->osipCtx, ev);
-	eXosip_unlock(sal->osipCtx);
+// 	eXosip_lock(sal->osipCtx);
+// 	eXosip_default_action(sal->osipCtx, ev);
+// 	eXosip_unlock(sal->osipCtx);
 
 	return TRUE;
 }
@@ -2222,11 +2222,11 @@ static bool_t process_event(Sal *sal, eXosip_event_t *ev) {
 		}
 		break;
 	case EXOSIP_CALL_MESSAGE_ANSWERED:
-		ms_message("EXOSIP_CALL_MESSAGE_ANSWERED ");
+		ms_message("EXOSIP_CALL_MESSAGE_ANSWERED");
 		process_in_call_reply(sal, ev);
 		break;
 	case EXOSIP_IN_SUBSCRIPTION_NEW:
-		ms_message("CALL_IN_SUBSCRIPTION_NEW ");
+		ms_message("CALL_IN_SUBSCRIPTION_NEW");
 		sal_exosip_subscription_recv(sal, ev);
 		break;
 	case EXOSIP_SUBSCRIPTION_NOTIFY:

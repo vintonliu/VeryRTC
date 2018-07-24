@@ -108,6 +108,9 @@ LinphoneCall * linphone_call_new_outgoing(struct _LinphoneCore *lc, LinphoneAddr
 	call->op=sal_op_new(lc->sal);
 	sal_op_set_user_pointer(call->op,call);
 	call->core=lc;
+	call->local_sdp = NULL;
+	call->remote_sdp = NULL;
+
 	linphone_core_get_local_ip(lc,NULL,call->localip);
 	linphone_call_init_common(call,from,to);
 	_linphone_call_params_copy(&call->params,params);
@@ -130,6 +133,8 @@ LinphoneCall * linphone_call_new_incoming(struct _LinphoneCore *lc, LinphoneAddr
 	sal_op_set_user_pointer(op,call);
 	call->op=op;
 	call->core=lc;
+	call->local_sdp = NULL;
+	call->remote_sdp = NULL;
 
 	if (lc->sip_conf.ping_with_options){
 		{

@@ -231,11 +231,16 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                 if (remote_sdp.isEmpty()) {
                     listener.onCallConnected(null);
                 } else {
-                    String type = "ANSWER";
-                    SessionDescription sdp = new SessionDescription(
-                            SessionDescription.Type.fromCanonicalForm(type),
-                            remote_sdp);
-                    listener.onCallConnected(sdp);
+                    if (callState == SipCallState.CALL_OUTGOING_RINGING ||
+                        callState == SipCallState.CALL_OUTGOING_INIT) {
+                        String type = "ANSWER";
+                        SessionDescription sdp = new SessionDescription(
+                                SessionDescription.Type.fromCanonicalForm(type),
+                                remote_sdp);
+                        listener.onCallConnected(sdp);
+                    } else {
+                        listener.onCallConnected(null);
+                    }
                 }
             }
         }

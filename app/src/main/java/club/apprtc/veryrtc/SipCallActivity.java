@@ -534,6 +534,7 @@ public class SipCallActivity extends Activity implements SipClientListener,
     @Override
     public void onCallAnswer() {
         if (peerConnectionClient != null) {
+            logAndToast("Creating ANSWER...");
             // Create offer. Offer SDP will be sent to answering client in
             // PeerConnectionEvents.onLocalDescription event.
             peerConnectionClient.createAnswer();
@@ -640,11 +641,11 @@ public class SipCallActivity extends Activity implements SipClientListener,
             logAndToast("Received remote " + sdp.type);
             peerConnectionClient.setRemoteDescription(sdp);
 
-            logAndToast("Creating ANSWER...");
+//            logAndToast("Creating ANSWER...");
 
             // Create offer. Offer SDP will be sent to answering client in
             // PeerConnectionEvents.onLocalDescription event.
-            peerConnectionClient.createAnswer();
+//            peerConnectionClient.createAnswer();
 
             callState = CallState.CALL_INCOMING;
         }
