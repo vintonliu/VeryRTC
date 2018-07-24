@@ -24,6 +24,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     private Vector<SipClientListener> listeners;
     private final Handler handler;
     private boolean isRegistered = false;
+    private boolean isInitiator = false;
 
     // Queued local ICE candidates are consumed only after received remote
     // ringing or connected message. Similarly local ICE candidates are sent to
@@ -107,9 +108,11 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             @Override
             public void run() {
                 sipclient.pub_doStartCall(callee, local_sdp.getDescription());
-                callState = SipCallState.CALL_OUTGOING_INIT;
             }
         });
+
+        callState = SipCallState.CALL_OUTGOING_INIT;
+        isInitiator = true;
         return true;
     }
 
@@ -144,12 +147,11 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             return false;
         }
 
-        if (callState == SipCallState.CALL_OUTGOING_INIT) {
-            if (queuedCallerCandidates != null) {
-                queuedCallerCandidates.add(candidate);
-            }
+        if ((isInitiator) && (queuedCallerCandidates != null)) {
+            queuedCallerCandidates.add(candidate);
+            Log.i(TAG, "doSendCandidate add: " + candidate.toString());
         } else {
-            handler.post(new Runnable() {
+            handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     JSONObject json = new JSONObject();
@@ -158,8 +160,9 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                     jsonPut(json, kCandidateSdpName, candidate.sdp);
 
                     sipclient.pub_doSendLocalCandidate(json.toString());
+                    Log.i(TAG, "doSendCandidate send: " + candidate.toString());
                 }
-            });
+            }, 100);
         }
 
         return true;
@@ -187,8 +190,10 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallIncoming(String from, String remote_sdp) {
+        callState = SipCallState.CALL_INCOMING;
+        isInitiator = false;
+
         synchronized (listeners) {
-            callState = SipCallState.CALL_INCOMING;
             for (SipClientListener listener: listeners) {
                 if (remote_sdp.isEmpty()) {
                     listener.onCallIncoming(from, null);
@@ -214,18 +219,19 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallRinging() {
+        callState = SipCallState.CALL_OUTGOING_RINGING;
+
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
                 listener.onCallRinging(null);
             }
         }
-
-        callState = SipCallState.CALL_OUTGOING_RINGING;
-        drainCandidates();
     }
 
     @Override
     public void onCallConnected(String remote_sdp) {
+        callState = SipCallState.CALL_CONNECTED;
+
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
                 if (remote_sdp.isEmpty()) {
@@ -245,34 +251,32 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             }
         }
 
-        if ((callState != SipCallState.CALL_IDLE) &&
-            (callState != SipCallState.CALL_INCOMING)) {
-            drainCandidates();
-        }
-        callState = SipCallState.CALL_CONNECTED;
+        // send all local cache candidates
+        drainCandidates();
     }
 
     @Override
     public void onCallEnded() {
+        callState = SipCallState.CALL_IDLE;
+        queuedCallerCandidates = null;
+
         synchronized (listeners) {
-            callState = SipCallState.CALL_IDLE;
             for (SipClientListener listener: listeners) {
                 listener.onCallEnded();
             }
         }
-        queuedCallerCandidates = null;
     }
 
     @Override
     public void onCallFailure(int reason) {
+        callState = SipCallState.CALL_IDLE;
+        queuedCallerCandidates = null;
+
         synchronized (listeners) {
-            callState = SipCallState.CALL_IDLE;
             for (SipClientListener listener: listeners) {
                 listener.onCallFailure(reason);
             }
         }
-
-        queuedCallerCandidates = null;
     }
 
     @Override
@@ -289,7 +293,6 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -316,12 +319,12 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     }
 
     private void drainCandidates() {
+        Log.i(TAG, "drainCandidates");
         handler.post(new Runnable() {
             @Override
             public void run() {
                 try {
                     if (queuedCallerCandidates != null) {
-                        Log.d(TAG, "Send local candidates to remote");
                         for (IceCandidate candidate : queuedCallerCandidates) {
                             JSONObject json = new JSONObject();
                             jsonPut(json, kCandidateSdpMlineIndexName, candidate.sdpMLineIndex);
@@ -329,7 +332,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                             jsonPut(json, kCandidateSdpName, candidate.sdp);
 
                             sipclient.pub_doSendLocalCandidate(json.toString());
-
+                            Log.i(TAG, "drainCandidates Send candidates: " + json.toString());
                             Thread.sleep(100);
                         }
                         queuedCallerCandidates = null;

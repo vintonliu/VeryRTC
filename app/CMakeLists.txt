@@ -25,7 +25,8 @@ ADD_DEFINITIONS(-DANDROID
                 -DENABLE_TRACE
                 -D__ANDROID_API__=17
                 -DHAVE_EXOSIP_DSCP
-                -DHAVE_EXOSIP_GET_VERSION)
+                -DHAVE_EXOSIP_GET_VERSION
+                -DDONOTWAIT_ENDOFTRANSACTION)
 
 
 INCLUDE(src/main/cpp/sip/osip/CMakeLists.txt)

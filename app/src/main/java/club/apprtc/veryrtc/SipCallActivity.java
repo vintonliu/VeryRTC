@@ -385,16 +385,16 @@ public class SipCallActivity extends Activity implements SipClientListener,
                 PeerConnection.IceServer.builder("turn:120.132.120.136:3478?transport=udp")
                         .setUsername("apprtc1").setPassword("apprtc1")
                         .createIceServer();
-        PeerConnection.IceServer turnServer1 =
-                PeerConnection.IceServer.builder("turn:120.132.120.136:3478?transport=tcp")
-                        .setUsername("apprtc1").setPassword("apprtc1")
-                        .createIceServer();
+//        PeerConnection.IceServer turnServer1 =
+//                PeerConnection.IceServer.builder("turn:120.132.120.136:3478?transport=tcp")
+//                        .setUsername("apprtc1").setPassword("apprtc1")
+//                        .createIceServer();
         PeerConnection.IceServer stunServer =
                 PeerConnection.IceServer.builder("stun:120.132.120.136:3478")
                         .createIceServer();
 
         iceServers.add(turnServer);
-        iceServers.add(turnServer1);
+//        iceServers.add(turnServer1);
         iceServers.add(stunServer);
 
         signalingParameters = new AppRTCClient.SignalingParameters(iceServers,

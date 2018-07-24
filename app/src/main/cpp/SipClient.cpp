@@ -155,8 +155,8 @@ int32_t SipClient::doAcceptCall(const std::string &answer)
 		return -1;
 	}
 
-	linphone_call_set_local_sdp_str(_current_call, answer.c_str());
-	return linphone_core_accept_call(_ptrLc, _current_call);
+	linphone_call_set_local_sdp_str(linphone_core_get_current_call(_ptrLc), answer.c_str());
+	return linphone_core_accept_call(_ptrLc, linphone_core_get_current_call(_ptrLc));
 }
 
 int32_t SipClient::doHangup()
@@ -174,13 +174,7 @@ int32_t SipClient::doSendCandidate(const std::string & candidate)
 		return -1;
 	}
 
-	if (_current_call == nullptr)
-	{
-		cout << __FUNCTION__ << "not exist previous call now" << endl;
-		return -1;
-	}
-
-	return linphone_call_send_candidate_message(_current_call, candidate.c_str());
+	return linphone_call_send_candidate_message(linphone_core_get_current_call(_ptrLc), candidate.c_str());
 }
 
 void SipClient::globalStateCb(LinphoneCore * lc, LinphoneGlobalState gstate, const char * message)

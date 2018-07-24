@@ -1652,6 +1652,9 @@ void linphone_core_notify_incoming_call(LinphoneCore *lc, LinphoneCall *call){
 			linphone_core_accept_call(lc, call);
 		}
 	}
+
+	lc->current_call = call;
+
 	linphone_call_unref(call);
 
 	ms_free(barmesg);

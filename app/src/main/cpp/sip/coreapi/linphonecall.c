@@ -414,7 +414,7 @@ char *linphone_call_get_remote_sdp_str(const LinphoneCall *call) {
  * Set local sdp
  */
 void linphone_call_set_local_sdp_str(LinphoneCall *call, const char* sdp) {
-	if (sdp == NULL)
+	if (sdp == NULL || call == NULL)
 	{
 		return;
 	}

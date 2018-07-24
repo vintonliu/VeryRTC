@@ -327,7 +327,7 @@ public class PeerConnection {
       pruneTurnPorts = false;
       presumeWritableWhenFullyRelayed = false;
       iceCheckMinInterval = null;
-      disableIPv6OnWifi = false;
+      disableIPv6OnWifi = true;
       maxIPv6Networks = 5;
       iceRegatherIntervalRange = null;
     }
