@@ -495,16 +495,19 @@ public class PeerConnectionClient {
     WebRtcAudioTrack.setErrorCallback(new WebRtcAudioTrackErrorCallback() {
       @Override
       public void onWebRtcAudioTrackInitError(String errorMessage) {
+        Log.e(TAG, "onWebRtcAudioTrackInitError: " + errorMessage);
         reportError(errorMessage);
       }
 
       @Override
       public void onWebRtcAudioTrackStartError(String errorMessage) {
+        Log.e(TAG, "onWebRtcAudioTrackStartError: " + errorMessage);
         reportError(errorMessage);
       }
 
       @Override
       public void onWebRtcAudioTrackError(String errorMessage) {
+        Log.e(TAG, "onWebRtcAudioTrackError: " + errorMessage);
         reportError(errorMessage);
       }
     });

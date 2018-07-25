@@ -37,6 +37,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def apkFile = new File("VeryRTC" + "-" + variant.buildType.name +
+                    "-V" + defaultConfig.versionName + ".apk")
+            outputFileName = apkFile
+        }
+    }
 }
 
 dependencies {
