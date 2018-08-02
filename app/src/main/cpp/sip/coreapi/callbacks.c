@@ -337,7 +337,7 @@ static void call_terminated(SalOp *op, const char *from){
 		break;
 		case LinphoneCallIncomingReceived:
 		case LinphoneCallIncomingEarlyMedia:
-			call->reason=LinphoneReasonNotAnswered;
+			call->reason = LinphoneReasonCancel;
 		break;
 		default:
 		break;

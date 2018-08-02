@@ -340,6 +340,15 @@ public class PeerConnectionClient {
     createPeerConnection(
         localRender, Collections.singletonList(remoteRender), videoCapturer, signalingParameters);
   }
+
+  public void createPeerConnection(final VideoSink localRender,
+                                   final List<VideoRenderer.Callbacks> remoteRenders, final VideoCapturer videoCapturer,
+                                   final List<PeerConnection.IceServer> iceServers) {
+    SignalingParameters signalingParameters = new SignalingParameters(iceServers, false,
+            "", "", "", null, null);
+    createPeerConnection(localRender, remoteRenders, videoCapturer, signalingParameters);
+  }
+
   public void createPeerConnection(final VideoSink localRender,
       final List<VideoRenderer.Callbacks> remoteRenders, final VideoCapturer videoCapturer,
       final SignalingParameters signalingParameters) {
@@ -782,6 +791,15 @@ public class PeerConnectionClient {
         if (remoteVideoTrack != null) {
           remoteVideoTrack.setEnabled(renderVideo);
         }
+      }
+    });
+  }
+
+  public void setSpeakerMute(final boolean enable) {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        WebRtcAudioTrack.setSpeakerMute(enable);
       }
     });
   }

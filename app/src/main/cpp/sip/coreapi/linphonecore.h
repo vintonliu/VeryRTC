@@ -254,6 +254,7 @@ enum _LinphoneReason{
 	LinphoneReasonNotAnswered, /**<The call was not answered in time*/
 	LinphoneReasonBusy, /**<Phone line was busy */
 	LinphoneReasonTemporarilyUnavailable, /**<Temporarily unavailable> */
+	LinphoneReasonCancel,	/**<User cancel> */
 };
 
 /**

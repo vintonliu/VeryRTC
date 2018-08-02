@@ -2,7 +2,7 @@ package club.apprtc.veryrtc;
 
 import android.util.Log;
 
-public class SipChannelClient {
+class SipChannelClient {
     static {
         System.loadLibrary("Sip");
     }
@@ -16,8 +16,7 @@ public class SipChannelClient {
         void onCallProcess();
         void onCallRinging();
         void onCallConnected(String remote_sdp);
-        void onCallEnded();
-        void onCallFailure(int reason);
+        void onCallEnded(int reason);
         void onRemoteIceCandidate(String candidate);
     }
 

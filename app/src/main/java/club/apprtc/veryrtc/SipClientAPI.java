@@ -10,9 +10,97 @@ import org.webrtc.IceCandidate;
 import org.webrtc.SessionDescription;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
-public class SipClientAPI implements SipChannelClient.SipNativeObserver {
+class SipClientAPI implements SipChannelClient.SipNativeObserver {
+
+    /**
+     * Struct holding the signaling parameters of an Sip client.
+     */
+    class SignalingParameters {
+        public final String proxy;
+        public final String nickName;
+        public final String userName;
+        public final String userPwd;
+
+        private boolean isRegistered;
+
+        public SignalingParameters(String proxy, String nickName,
+                                   String userName, String userPwd) {
+            this.proxy = proxy;
+            this.nickName = nickName;
+            this.userName = userName;
+            this.userPwd = userPwd;
+            this.isRegistered = false;
+        }
+
+        public boolean isRegistered() {
+            return isRegistered;
+        }
+
+        public void setRegistered(boolean registered) {
+            isRegistered = registered;
+        }
+    }
+
+    public enum CallState {
+        CALL_IDLE,
+        CALL_OUTGOING_INIT,
+        CALL_OUTGOING_PROCESSING,
+        CALL_OUTGOING_RINGING,
+        CALL_OUTPUT_EARLY_RINGING,
+        CALL_INCOMING,
+        CALL_CONNECTED
+    }
+
+    /**
+     *
+     */
+    private class SessionParameters {
+        public boolean isInitiator;
+        CallState state;
+        public String fromUser;
+        public String toUser;
+        public SessionDescription offerSdp;
+        public SessionDescription answerSdp;
+        public List<IceCandidate> localCandidates;
+        public List<IceCandidate> remoteCandidates;
+
+        SessionParameters() {
+            state = CallState.CALL_IDLE;
+            isInitiator = false;
+        }
+    }
+
+    public enum SipReason {
+        /* Mapped Jni reason, must be same order with SipReason in SignalingEvent.h */
+        SIP_REASON_NONE("No error"),
+        SIP_REASON_NO_RESPONSE("No response timeout, please check network"),
+        SIP_REASON_BAD_CREDENTIALS("Bad credentials, please check username and password"),
+        SIP_REASON_DECLINED("Call declined"),
+        SIP_REASON_NOT_FOUND("User not found"),
+        SIP_REASON_NO_ANSWER("User not answer"),
+        SIP_REASON_BUSY("User is busy"),
+        SIP_REASON_TEMPORARILY_UNAVAILABLE("Temporarily unavailable"),
+        SIP_REASON_CANCEL("User cancel"),
+        SIP_REASON_UNKNOWN("unknown error"),
+
+        /* Custom reason in Java layer */
+        SIP_REASON_MEDIA_NOT_ACCEPT("Media not accept"),
+        SIP_REASON_UNDEFINE("undefine");
+
+        private String desc;
+        SipReason(String desc) {
+            this.desc = desc;
+        }
+
+        @Override
+        public String toString() {
+            return desc;
+        }
+    }
+
     private final static String TAG = "SipClientAPI";
 
     // Names used for a IceCandidate JSON object.
@@ -21,10 +109,11 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     private final static String kCandidateSdpName = "candidate";
 
     private SipChannelClient sipclient;
-    private Vector<SipClientListener> listeners;
+    private final Vector<SipClientListener> listeners;
     private final Handler handler;
-    private boolean isRegistered = false;
-    private boolean isInitiator = false;
+//    private boolean isInitiator = false;
+    private SignalingParameters signalingParameters;
+    private SessionParameters sessionParameters;
 
     // Queued local ICE candidates are consumed only after received remote
     // ringing or connected message. Similarly local ICE candidates are sent to
@@ -59,6 +148,36 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                 handler.getLooper().quit();
             }
         });
+
+        listeners.clear();
+    }
+
+    public CallState getState() {
+        return sessionParameters.state;
+    }
+
+    public boolean isInCall() {
+        return (sessionParameters != null) && (sessionParameters.state != CallState.CALL_IDLE);
+    }
+
+    public boolean isVideoCall() {
+        if (getState() == CallState.CALL_IDLE) {
+            return false;
+        }
+        if (getState() == CallState.CALL_CONNECTED) {
+            return (sessionParameters.offerSdp.containVideo() &&
+                    sessionParameters.answerSdp.containVideo());
+        } else {
+            return sessionParameters.offerSdp.containVideo();
+        }
+    }
+
+    public SessionDescription offerSDP() {
+        return sessionParameters.offerSdp;
+    }
+
+    public SessionDescription answerSDP() {
+        return sessionParameters.answerSdp;
     }
 
     public boolean doRegister(final String proxy, final String display,
@@ -66,6 +185,8 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         if (proxy.isEmpty() || username.isEmpty() || userpwd.isEmpty()) {
             return false;
         }
+
+        signalingParameters = new SignalingParameters(proxy, display, username, userpwd);
 
         handler.post(new Runnable() {
             @Override
@@ -78,7 +199,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     }
 
     public boolean doUnRegister() {
-        isRegistered = false;
+        signalingParameters.isRegistered = false;
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -88,20 +209,39 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         return true;
     }
 
-    public boolean doStartCall(final String callee, final SessionDescription local_sdp) {
-        if (!isRegistered || callee.isEmpty() || local_sdp == null) {
+    public boolean doOutgoingInit(final String toUser) {
+        if (!(signalingParameters.isRegistered) || toUser.isEmpty() ) {
+            return false;
+        }
+        if (sessionParameters != null) {
+            sessionParameters = null;
+        }
+        sessionParameters = new SessionParameters();
+        sessionParameters.isInitiator = true;
+        sessionParameters.fromUser = signalingParameters.userName;
+        sessionParameters.toUser = toUser;
+        sessionParameters.state = CallState.CALL_OUTGOING_INIT;
+
+        return true;
+    }
+
+    public boolean doStartCall(final SessionDescription local_sdp) {
+        if (!(signalingParameters.isRegistered) || local_sdp == null) {
             return false;
         }
         queuedCallerCandidates = new LinkedList<IceCandidate>();
 
+        sessionParameters.offerSdp = local_sdp;
+        sessionParameters.state = CallState.CALL_OUTGOING_PROCESSING;
+
         handler.post(new Runnable() {
             @Override
             public void run() {
-                sipclient.pub_doStartCall(callee, local_sdp.getDescription());
+                sipclient.pub_doStartCall(sessionParameters.toUser,
+                                        local_sdp.getDescription());
             }
         });
 
-        isInitiator = true;
         return true;
     }
 
@@ -109,6 +249,8 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         if (local_sdp == null) {
             return false;
         }
+
+        sessionParameters.answerSdp = local_sdp;
 
         handler.post(new Runnable() {
             @Override
@@ -120,6 +262,10 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     }
 
     public boolean doHangup() {
+        if (sessionParameters == null) {
+            return true;
+        }
+
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -134,7 +280,11 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
             return false;
         }
 
-        if ((isInitiator) && (queuedCallerCandidates != null)) {
+        if (sessionParameters == null) {
+            return false;
+        }
+
+        if ((sessionParameters.isInitiator) && (queuedCallerCandidates != null)) {
             queuedCallerCandidates.add(candidate);
             Log.i(TAG, "doSendCandidate add: " + candidate.toString());
         } else {
@@ -155,9 +305,17 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
         return true;
     }
 
+    public boolean isInitiator() {
+        if (sessionParameters == null) {
+            return false;
+        }
+
+        return sessionParameters.isInitiator;
+    }
+
     @Override
     public void onRegistered(boolean registered) {
-        isRegistered = registered;
+        signalingParameters.isRegistered = registered;
         synchronized (listeners) {
             for (SipClientListener listener : listeners) {
                 listener.onRegistered(registered);
@@ -167,17 +325,24 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onRegisterFailure(int reason) {
-        isRegistered = false;
+        signalingParameters.isRegistered = false;
         synchronized (listeners) {
             for (SipClientListener listener : listeners) {
-                listener.onRegisterFailure(reason);
+                listener.onRegisterFailure(SipReason.values()[reason]);
             }
         }
     }
 
     @Override
     public void onCallIncoming(String from, String remote_sdp) {
-        isInitiator = false;
+        if (sessionParameters != null) {
+            sessionParameters = null;
+        }
+        sessionParameters = new SessionParameters();
+        sessionParameters.isInitiator = false;
+        sessionParameters.fromUser = from;
+        sessionParameters.toUser = signalingParameters.userName;
+        sessionParameters.state = CallState.CALL_INCOMING;
 
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
@@ -188,6 +353,8 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                     SessionDescription sdp = new SessionDescription(
                             SessionDescription.Type.fromCanonicalForm(type),
                             remote_sdp);
+
+                    sessionParameters.offerSdp = sdp;
                     listener.onCallIncoming(from, sdp);
                 }
             }
@@ -196,6 +363,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallProcess() {
+        sessionParameters.state = CallState.CALL_OUTGOING_PROCESSING;
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
 
@@ -205,6 +373,7 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallRinging() {
+        sessionParameters.state = CallState.CALL_OUTGOING_RINGING;
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
                 listener.onCallRinging(null);
@@ -214,18 +383,23 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     @Override
     public void onCallConnected(String remote_sdp) {
+        sessionParameters.state = CallState.CALL_CONNECTED;
+
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
-                if (remote_sdp.isEmpty()) {
-                    listener.onCallConnected(null);
+                if (isInitiator() && remote_sdp.isEmpty()) {
+                    // We need remote sdp as an Initiator
+                    listener.onCallEnded(SipReason.SIP_REASON_MEDIA_NOT_ACCEPT);
                 } else {
-                    if (isInitiator) {
+                    if (isInitiator()) {
                         String type = "ANSWER";
                         SessionDescription sdp = new SessionDescription(
                                 SessionDescription.Type.fromCanonicalForm(type),
                                 remote_sdp);
+                        sessionParameters.answerSdp = sdp;
                         listener.onCallConnected(sdp);
                     } else {
+                        // As non-initiator, we have all sdp before
                         listener.onCallConnected(null);
                     }
                 }
@@ -237,23 +411,13 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
     }
 
     @Override
-    public void onCallEnded() {
+    public void onCallEnded(int reason) {
         queuedCallerCandidates = null;
+        sessionParameters.state = CallState.CALL_IDLE;
 
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
-                listener.onCallEnded();
-            }
-        }
-    }
-
-    @Override
-    public void onCallFailure(int reason) {
-        queuedCallerCandidates = null;
-
-        synchronized (listeners) {
-            for (SipClientListener listener: listeners) {
-                listener.onCallFailure(reason);
+                listener.onCallEnded(SipReason.values()[reason]);
             }
         }
     }
@@ -321,5 +485,15 @@ public class SipClientAPI implements SipChannelClient.SipNativeObserver {
                 }
             }
         });
+    }
+
+    interface SipClientListener {
+        void onRegistered(final boolean registered);
+        void onRegisterFailure(final SipReason reason);
+        void onCallRinging(final SessionDescription remoteSdp);
+        void onCallIncoming(final String fromUser, final SessionDescription remoteSdp);
+        void onCallConnected(final SessionDescription remoteSdp);
+        void onCallEnded(final SipReason reason);
+        void onRemoteIceCandidate(final IceCandidate candidate);
     }
 }

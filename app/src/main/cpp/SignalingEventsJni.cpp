@@ -44,7 +44,7 @@ void SignalingEventsJni::onRegistered(bool registered) {
     jni.GetEnv()->CallVoidMethod(j_observer_global_, m, registered);
 }
 
-void SignalingEventsJni::onRegisterFailure(RegisterReason reason) {
+void SignalingEventsJni::onRegisterFailure(const SipReason &reason) {
     LOGI("%s reason = %d", __FUNCTION__, reason);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
@@ -91,19 +91,11 @@ void SignalingEventsJni::onCallIncoming(const SignalingParameters &params) {
     jni.GetEnv()->CallVoidMethod(j_observer_global_, m, from, sdp);
 }
 
-void SignalingEventsJni::onCallEnded() {
+void SignalingEventsJni::onCallEnded(const SipReason &reason) {
     LOGI("%s", __FUNCTION__);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
-                              "onCallEnded", "()V");
-    jni.GetEnv()->CallVoidMethod(j_observer_global_, m);
-}
-
-void SignalingEventsJni::onCallFailure(CallReason reason) {
-    LOGI("%s", __FUNCTION__);
-    ScopedJni jni;
-    jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
-                              "onCallFailure", "(I)V");
+                              "onCallEnded", "(I)V");
     jni.GetEnv()->CallVoidMethod(j_observer_global_, m, (int)reason);
 }
 

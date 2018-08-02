@@ -529,7 +529,7 @@ static void sip_config_read(LinphoneCore *lc)
 	/*start listening on ports*/
  	linphone_core_set_sip_transports(lc, &tr);
 
-	linphone_core_set_inc_timeout(lc, 120);
+	linphone_core_set_inc_timeout(lc, 60);
 	linphone_core_set_in_call_timeout(lc, 0);	
 	linphone_core_set_delayed_timeout(lc, 4);
 
@@ -564,8 +564,6 @@ static void misc_config_read (LinphoneCore *lc) {
 
 static void linphone_core_init (LinphoneCore * lc, const LinphoneCoreVTable *vtable, void * userdata)
 {
-	ortp_set_log_level_mask(0xff);
-
 	ms_message("Initializing LinphoneCore %s", linphone_core_get_version());
 
 	memset (lc, 0, sizeof (LinphoneCore));
@@ -1352,7 +1350,7 @@ int linphone_core_start_invite(LinphoneCore *lc, LinphoneCall *call){
 	if (err<0){
 		if (lc->vtable.display_status!=NULL)
 			lc->vtable.display_status(lc,_("Could not call"));
-		linphone_call_set_state(call,LinphoneCallError,"Call failed");
+		linphone_call_set_state(call,LinphoneCallError,"Outgoing call failed");
 	}else {
 		linphone_call_set_state(call,LinphoneCallOutgoingProgress,"Outgoing call in progress");
 	}
@@ -2757,9 +2755,11 @@ const char *linphone_reason_to_string(LinphoneReason err){
 		case LinphoneReasonNotFound:
 			return "User not found";
 		case LinphoneReasonNotAnswered:
-			return "Not answered";
+			return "User not answered";
 		case LinphoneReasonBusy:
 			return "Busy";
+		case LinphoneReasonTemporarilyUnavailable:
+			return "Temporarily unavailable";
 	}
 	return "unknown error";
 }

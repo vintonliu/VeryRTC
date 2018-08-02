@@ -246,12 +246,12 @@ static void _osip_trace_func(char *fi, int li, osip_trace_level_t level, char *c
 		int len = strlen(chfr);
 		char *chfrdup = ortp_strdup(chfr);
 		/* need to remove endline */
-		/*if (len > 1) {
+		if (len > 1) {
 			if (chfrdup[len - 1] == '\n')
 				chfrdup[len - 1] = '\0';
 			if (chfrdup[len - 2] == '\r')
 				chfrdup[len - 2] = '\0';
-		}*/
+		}
 		ortp_logv(ortp_level, chfrdup, ap);
 		ortp_free(chfrdup);
 	}
@@ -1046,7 +1046,7 @@ int sal_call_terminate(SalOp *h) {
 	if (!h->base.root->reuse_authorization) pop_auth_from_exosip(h);
 
 	if (err != 0) {
-		ms_warning("Exosip could not terminate the call: cid=%i did=%i", h->cid, h->did);
+		ms_warning("Exosip could not terminate the call: cid=%i did=%i err=%i", h->cid, h->did, err);
 	}
 	h->terminated = TRUE;
 	return 0;

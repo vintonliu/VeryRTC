@@ -12,7 +12,6 @@ package club.apprtc.veryrtc;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.media.Image;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -132,8 +131,7 @@ public class SipCallFragment extends Fragment {
       String contactName = args.getString(SipCallActivity.EXTRA_USERNAME);
       contactView.setText(contactName);
       videoCallEnabled = args.getBoolean(SipCallActivity.EXTRA_VIDEO_CALL, true);
-      captureSliderEnabled = videoCallEnabled
-          && args.getBoolean(SipCallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, false);
+      captureSliderEnabled = videoCallEnabled && args.getBoolean(SipCallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, false);
       outgoing = args.getBoolean(SipCallActivity.EXTRA_OUTGOING);
     }
     if (!videoCallEnabled) {

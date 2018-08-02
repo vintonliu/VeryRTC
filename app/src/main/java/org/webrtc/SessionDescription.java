@@ -74,6 +74,10 @@ public class SessionDescription implements Serializable{
     }
   }
 
+  public boolean containVideo() {
+    return description.contains("m=video");
+  }
+
   @Override
   public String toString() {
     try {

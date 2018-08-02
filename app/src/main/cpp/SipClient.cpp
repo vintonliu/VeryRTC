@@ -23,7 +23,6 @@ SipClient::SipClient(SignalingEvents * events)
 	, _events(events)
 	, _thread_name("LcIterateThread")
 	, _running(false)
-	, _current_call(nullptr)
 {
 	initialize();
 }
@@ -47,7 +46,11 @@ SipClient::~SipClient()
 int32_t SipClient::initialize()
 {
 	initVtable();
+
+	OrtpLogLevel lvl = (OrtpLogLevel)(ORTP_MESSAGE | ORTP_WARNING | ORTP_ERROR | ORTP_FATAL);
+	linphone_core_set_log_level(lvl);
 	_ptrLc = linphone_core_new_with_config(&_vtable, this);
+
 	//linphone_core_set_sip_random_port(_ptrLc, TRUE);
 	
 	_running = true;
@@ -181,7 +184,7 @@ void SipClient::globalStateCb(LinphoneCore * lc, LinphoneGlobalState gstate, con
 {
 	if (message != nullptr)
 	{
-		cout << "globalState: " << message << endl;
+		ms_debug("globalState: %s", message);
 	}
 }
 
@@ -191,30 +194,29 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 	const LinphoneAddress *fromaddr = linphone_call_get_remote_address(call);
 	const char *from = linphone_address_get_username(fromaddr);
 
-	long id = (long)linphone_call_get_user_pointer(call);
 	SipClient *sipclient = static_cast<SipClient*>(linphone_core_get_user_data(lc));
-	sipclient->_current_call = call;
-
-	printf("call state: %s\n", linphone_call_state_to_string(cstate));
+	
+	ms_message("Call from %s state %s", from, linphone_call_state_to_string(cstate));
 
 	switch (cstate) {
 	case LinphoneCallEnd:
+	case LinphoneCallError:
 	{
-		printf("Call %li with %s ended (%s).\n", id, from, linphone_reason_to_string(linphone_call_get_reason(call)));
-		sipclient->_current_call = nullptr;
-
+		ms_message("Call ended (%s).", linphone_reason_to_string(linphone_call_get_reason(call)));
+		
 		if (sipclient->_events)
 		{
-			sipclient->_events->onCallEnded();
+			sipclient->_events->onCallEnded((SipReason)(linphone_call_get_reason(call)));
 		}
 	}
 		break;
 	case LinphoneCallResuming:
-		printf("Resuming call %li with %s.\n", id, from);
+	{
+		/// ToDo
+	}
 		break;
 	case LinphoneCallStreamsRunning:
 	{
-		printf("Media streams established with %s for call %i (%s).\n", from, id, (linphone_call_params_video_enabled(linphone_call_get_current_params(call)) ? "video" : "audio"));
 		if (sipclient->_events)
 		{
 			//sipclient->_events->onCallConnected();
@@ -222,18 +224,22 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 	}
 		break;
 	case LinphoneCallPausing:
-		printf("Pausing call %li with %s.\n", id, from);
+	{
+		/// ToDo
+	}
 		break;
 	case LinphoneCallPaused:
-		printf("Call %li with %s is now paused.\n", id, from);
+	{
+		/// ToDo
+	}
 		break;
 	case LinphoneCallPausedByRemote:
-		printf("Call %li has been paused by %s.\n", id, from);
+	{
+		/// ToDo
+	}
 		break;
 	case LinphoneCallIncomingReceived:
 	{
-		printf("Receiving new incoming call from %s, assigned id %i\n", from, id);
-		
 		if (sipclient->_events)
 		{
 			SignalingParameters param;
@@ -244,15 +250,15 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 	}
 		break;
 	case LinphoneCallOutgoingInit:
-		printf("Establishing call id to %s, assigned id %i\n", from, id);
+	{
+		/// ToDo
+	}
 		break;
-	case LinphoneCallUpdatedByRemote:		
-		printf("Call %li to %s update by remote.\n", id, from);
+	case LinphoneCallUpdatedByRemote:
 		linphone_core_defer_call_update(lc, call);
 		break;
 	case LinphoneCallOutgoingProgress:
 	{
-		printf("Call %li to %s in progress.\n", id, from);
 		if (sipclient->_events)
 		{
 			sipclient->_events->onCallProcess();
@@ -261,7 +267,6 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 		break;
 	case LinphoneCallOutgoingRinging:
 	{
-		printf("Call %li to %s ringing.\n", id, from);
 		if (sipclient->_events)
 		{
 			sipclient->_events->onCallRinging();
@@ -270,7 +275,6 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 		break;
 	case LinphoneCallConnected:
 	{
-		printf("Call %li with %s connected.\n", id, from);
 		if (sipclient->_events)
 		{
 			SignalingParameters param;
@@ -282,55 +286,13 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 		break;
 	case LinphoneCallOutgoingEarlyMedia:
 	{
-		printf("Call %li with %s early media.\n", id, from);
 		if (sipclient->_events)
 		{
 			sipclient->_events->onCallRinging();
 		}
 	}
 		break;
-	case LinphoneCallError:
-	{
-		printf("Call %li with %s error.\n", id, from);
-		sipclient->_current_call = nullptr;
-
-		if (sipclient->_events)
-		{
-			LinphoneReason error = linphone_call_get_reason(call);
-			CallReason reason = CallReasonUnknown;
-			switch (error)
-			{
-			case LinphoneReasonNone:
-				reason = CallReasonNone;
-				break;
-			case LinphoneReasonNoResponse:
-				reason = CallReasonNoResponse;
-				break;
-			case LinphoneReasonBadCredentials:
-				reason = CallReasonBadCredentials;
-				break;
-			case LinphoneReasonDeclined:
-				reason = CallReasonDeclined;
-				break;
-			case LinphoneReasonNotFound:
-				reason = CallReasonNotFound;
-				break;
-			case LinphoneReasonNotAnswered:
-				reason = CallReasonNotAnswer;
-				break;
-			case LinphoneReasonBusy:
-				reason = CallReasonBusy;
-				break;
-			case LinphoneReasonTemporarilyUnavailable:
-				reason = CallReasonTemporarilyUnavailable;
-				break;
-			default:
-				break;
-			}
-			sipclient->_events->onCallFailure(reason);
-		}
-	}
-		break;
+	
 	default:
 		break;
 	}
@@ -340,7 +302,7 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 
 void SipClient::registrationStateCb(LinphoneCore * lc, LinphoneProxyConfig * cfg, LinphoneRegistrationState cstate, const char * message)
 {
-	printf("New registration state %s for user id [%s] at proxy [%s]\n"
+	ms_message("New registration state %s for user id [%s] at proxy [%s]."
 				, linphone_registration_state_to_string(cstate)
 				, linphone_proxy_config_get_identity(cfg)
 				, linphone_proxy_config_get_addr(cfg));
@@ -361,7 +323,7 @@ void SipClient::registrationStateCb(LinphoneCore * lc, LinphoneProxyConfig * cfg
 	{
 		if (client->_events)
 		{
-			client->_events->onRegistered(false);
+			client->_events->onRegistered(false);			
 		}
 		linphone_core_clear_proxy_config(lc);
 	}
@@ -371,31 +333,13 @@ void SipClient::registrationStateCb(LinphoneCore * lc, LinphoneProxyConfig * cfg
 	{
 		if (client->_events)
 		{
-			LinphoneReason error = linphone_proxy_config_get_error(cfg);
-			RegisterReason reason = RegisterReasonUnknown;
-			switch (error)
-			{
-			case LinphoneReasonNone:
-				reason = RegisterReasonNone;
-				break;
-			case LinphoneReasonBadCredentials:
-				reason = RegisterReasonBadCredentials;
-				break;
-			case LinphoneReasonNotFound:
-				reason = RegisterReasonNotFound;
-				break;
-			case LinphoneReasonNoResponse:
-				reason = RegisterReasonNoResponse;
-				break;
-			default:
-				break;
-			}
-
-			if (reason == RegisterReasonBadCredentials || reason == RegisterReasonNotFound)
+			LinphoneReason reason = linphone_proxy_config_get_error(cfg);
+			
+			if (reason == LinphoneReasonBadCredentials || reason == LinphoneReasonNotFound)
 			{
 				linphone_core_clear_proxy_config(lc);
 			}
-			client->_events->onRegisterFailure(reason);
+			client->_events->onRegisterFailure((SipReason)reason);
 		}
 	}
 		break;
@@ -409,7 +353,7 @@ void SipClient::displayStatusCb(LinphoneCore * lc, const char * message)
 {
 	if (message != nullptr)
 	{
-		cout << "status: " << message << endl;
+		ms_debug("display status: %s.", message);
 	}
 }
 
@@ -418,7 +362,7 @@ void SipClient::callLogUpdated(LinphoneCore * lc, LinphoneCallLog * newcl)
 	if (newcl != nullptr)
 	{
 		char * cl = linphone_call_log_to_str(newcl);
-		printf("\ncall log: %s\n", cl);
+		ms_message("Call log: %s", cl);
 		ms_free(cl);
 		cl = nullptr;
 	}
@@ -428,7 +372,7 @@ void SipClient::displayMessage(LinphoneCore * lc, const char * message)
 {
 	if (message != nullptr)
 	{
-		cout << "displayMessage: " << message << endl;
+		ms_debug("display message: %s.", message);
 	}
 }
 
@@ -436,7 +380,7 @@ void SipClient::displayWarning(LinphoneCore * lc, const char * message)
 {
 	if (message != nullptr)
 	{
-		cout << "displayWarning: " << message << endl;
+		ms_warning("display warning: %s.", message);
 	}
 }
 

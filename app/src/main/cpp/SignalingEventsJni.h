@@ -19,7 +19,7 @@ public:
 
     void onRegistered(bool registered) override;
 
-    void onRegisterFailure(RegisterReason reason) override;
+    void onRegisterFailure(const SipReason &reason) override;
 
     void onCallProcess() override;
 
@@ -29,9 +29,7 @@ public:
 
     void onCallIncoming(const SignalingParameters &params) override;
 
-    void onCallEnded() override;
-
-    void onCallFailure(CallReason reason) override;
+    void onCallEnded(const SipReason &reason) override;
 
     void onRemoteDescription(const std::string &sdp) override;
 

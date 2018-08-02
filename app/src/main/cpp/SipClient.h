@@ -143,8 +143,6 @@ private:
 	bool _running{ false };
 	std::unique_ptr<std::thread> _iterate_thread;
 	const char* _thread_name;	
-
-	LinphoneCall *_current_call;
 };
 } /* namespace mrtc */
 #endif /* __SIP_CLIENT_H__ */

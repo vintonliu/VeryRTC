@@ -21,7 +21,7 @@
 #include "logging.h"
 #ifdef ANDROID
 #include <android/log.h>
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "SipJni", __VA_ARGS__))
+#define LOGGING(lev, ...) ((void)__android_log_print(lev, "SipJni", __VA_ARGS__))
 #endif
 
 static FILE *__log_file=0;
@@ -133,23 +133,41 @@ void ortp_logv(int level, const char *fmt, va_list args)
 static void __ortp_logv_out(OrtpLogLevel lev, const char *fmt, va_list args){
 	const char *lname="undef";
 	char *msg = NULL;
+#ifdef ANDROID
+    int level = ANDROID_LOG_INFO;
+#endif
 
 	if (__log_file==NULL) __log_file=stderr;
 	switch(lev){
 		case ORTP_DEBUG:
 			lname="debug";
+#ifdef ANDROID
+			level = ANDROID_LOG_DEBUG;
+#endif
 			break;
 		case ORTP_MESSAGE:
 			lname="message";
+#ifdef ANDROID
+			level = ANDROID_LOG_INFO;
+#endif
 			break;
 		case ORTP_WARNING:
 			lname="warning";
+#ifdef ANDROID
+			level = ANDROID_LOG_WARN;
+#endif
 			break;
 		case ORTP_ERROR:
 			lname="error";
+#ifdef ANDROID
+			level = ANDROID_LOG_ERROR;
+#endif
 			break;
 		case ORTP_FATAL:
 			lname="fatal";
+#ifdef ANDROID
+			level = ANDROID_LOG_FATAL;
+#endif
 			break;
 		default:
 			ortp_fatal("Bad level !");
@@ -158,27 +176,47 @@ static void __ortp_logv_out(OrtpLogLevel lev, const char *fmt, va_list args){
 	msg = ortp_strdup_vprintf(fmt, args);
 	if (msg != NULL)
 	{
+		int len = strlen(msg);
+		/* need to remove endline */
+		if (len > 1) {
+			if (msg[len - 1] == '\n')
+				msg[len - 1] = '\0';
+			if (msg[len - 2] == '\r')
+				msg[len - 2] = '\0';
+		}
+
+		len += 128;
+		char *tmpBuf = ortp_malloc(len);
+		if (tmpBuf == NULL)
+		{
+			ortp_free(msg);
+			msg = NULL;
+			return;
+		}
+
+		snprintf(tmpBuf, len, "sip-%s-%s"ENDLINE, lname, msg);
+
 #if defined(_MSC_VER) && !defined(_WIN32_WCE)
 #ifdef UNICODE
 		WCHAR wUnicode[4096 * 2];
 		int size;
 
-		size = MultiByteToWideChar(CP_UTF8, 0, msg, -1, wUnicode, sizeof(wUnicode));
-		wUnicode[size - 2] = '\n';
-		wUnicode[size - 1] = '\0';
+		size = MultiByteToWideChar(CP_UTF8, 0, tmpBuf, -1, wUnicode, sizeof(wUnicode));
 		OutputDebugString(wUnicode);
 #else
-		OutputDebugString(msg);
-		OutputDebugString("\r\n");
+		OutputDebugString(tmpBuf);
 #endif
 #endif
-#ifdef ANDROID  //jkh
-		LOGI("%s", msg);
+#ifdef ANDROID
+		LOGGING(level, "%s", tmpBuf);
 #endif
 
-		fprintf(__log_file, "osip-%s-%s", lname, msg);
+		fprintf(__log_file, tmpBuf);
 		fflush(__log_file);
 		ortp_free(msg);
 		msg = NULL;
+
+		ortp_free(tmpBuf);
+		tmpBuf = NULL;
 	}
 }

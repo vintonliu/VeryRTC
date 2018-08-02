@@ -3,26 +3,18 @@
 
 #include <string>
 namespace mrtc {
-enum RegisterReason
+enum SipReason
 {
-	RegisterReasonNone,
-	RegisterReasonNoResponse,
-	RegisterReasonBadCredentials,
-	RegisterReasonNotFound,
-	RegisterReasonUnknown
-};
-
-enum CallReason
-{
-	CallReasonNone,
-	CallReasonNoResponse,
-	CallReasonBadCredentials,
-	CallReasonDeclined,
-	CallReasonNotFound,
-	CallReasonNotAnswer,
-	CallReasonBusy,
-	CallReasonTemporarilyUnavailable,
-	CallReasonUnknown
+	SipReasonNone,
+	SipReasonNoResponse,
+	SipReasonBadCredentials,
+	SipReasonDeclined,
+	SipReasonNotFound,
+	SipReasonNotAnswer,
+	SipReasonBusy,
+	SipReasonTemporarilyUnavailable,
+	SipReasonCancel,
+	SipReasonUnknown
 };
 
 typedef struct SignalingParameters
@@ -51,7 +43,7 @@ public:
 		* Callback fired once register/unregister failure
 		* @param reason register/unregister failure reason
 		*/
-	virtual void onRegisterFailure(RegisterReason reason) = 0;
+	virtual void onRegisterFailure(const SipReason &reason) = 0;
 
 	/**
 		* Callback fired once new incoming call received
@@ -77,14 +69,8 @@ public:
 	/**
 		* Callback fired once call terminated
 		*/
-	virtual void onCallEnded() = 0;
-
-	/**
-		* Callback fired once call failure
-		* @param reason call failure reason
-		*/
-	virtual void onCallFailure(CallReason reason) = 0;
-
+	virtual void onCallEnded(const SipReason &reason) = 0;
+	
 	/**
 		* Callback fired once remote SDP is received
 		*/
