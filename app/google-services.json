@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1040114355531",
+    "firebase_url": "https://veryrtc-3422e.firebaseio.com",
+    "project_id": "veryrtc-3422e",
+    "storage_bucket": "veryrtc-3422e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040114355531:android:812a3308a9ce7d4e",
+        "android_client_info": {
+          "package_name": "club.apprtc.veryrtc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1040114355531-o1aeiuaf018iuh0ba4oivn87vpolrmu6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzN7tGBhGQ8EawYYFx7G_fuyQvc3lWeVw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

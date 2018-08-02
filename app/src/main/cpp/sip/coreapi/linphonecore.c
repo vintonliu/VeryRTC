@@ -993,7 +993,9 @@ static void monitor_network_state(LinphoneCore *lc, time_t curtime){
 
 static void proxy_update(LinphoneCore *lc){
 	MSList *elem,*next;
+	if (ms_list_size(lc->sip_conf.proxies) > 0) {
 	ms_list_for_each(lc->sip_conf.proxies,(void (*)(void*))&linphone_proxy_config_update);
+	}
 	for(elem=lc->sip_conf.deleted_proxies;elem!=NULL;elem=next){
 		LinphoneProxyConfig* cfg = (LinphoneProxyConfig*)elem->data;
 		next=elem->next;

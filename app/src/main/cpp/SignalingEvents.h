@@ -8,6 +8,7 @@ enum RegisterReason
 	RegisterReasonNone,
 	RegisterReasonNoResponse,
 	RegisterReasonBadCredentials,
+	RegisterReasonNotFound,
 	RegisterReasonUnknown
 };
 
@@ -20,6 +21,7 @@ enum CallReason
 	CallReasonNotFound,
 	CallReasonNotAnswer,
 	CallReasonBusy,
+	CallReasonTemporarilyUnavailable,
 	CallReasonUnknown
 };
 

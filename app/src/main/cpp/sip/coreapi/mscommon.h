@@ -59,28 +59,7 @@ time_t ms_time (time_t *t);
 #define ms_time time
 #endif
 
-#ifdef WIN32
-static inline void ms_debug(const char *fmt,...)
-{
-  va_list args;
-  va_start (args, fmt);
-  ortp_logv(ORTP_DEBUG, fmt, args);
-  va_end (args);
-}
-#else
-#ifdef DEBUG
-static inline void ms_debug(const char *fmt,...)
-{
-  va_list args;
-  va_start (args, fmt);
-  ortp_logv(ORTP_DEBUG, fmt, args);
-  va_end (args);
-}
-#else
-#define ms_debug(...)
-#endif	
-#endif
-
+#define ms_debug    ortp_debug
 #define ms_message	ortp_message
 #define ms_warning	ortp_warning
 #define ms_error	ortp_error

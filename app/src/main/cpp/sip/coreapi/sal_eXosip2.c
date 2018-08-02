@@ -2066,6 +2066,8 @@ static void registration_success(Sal *sal, eXosip_event_t *ev) {
 		ms_error("Receiving register response for unknown operation");
 		return;
 	}
+	op->r_retry = 0;
+
 	osip_message_get_expires(ev->request, 0, &h);
 	if (h != NULL && atoi(h->hvalue) != 0) {
 		registered = TRUE;
@@ -2097,7 +2099,19 @@ static bool_t registration_failure(Sal *sal, eXosip_event_t *ev) {
 	{
 	case 401:
 	case 407:
+	{
+		if (op->r_retry < 3)
+		{
+			op->r_retry++;
+		}
+		else
+		{
+			se = SalErrorFailure;
+			sr = SalReasonForbidden;
+			sal->callbacks.register_failure(op, se, sr, reason);
+		}
 		update_contact_from_response(op, ev->response);
+	}
 		break;
 	case 423:
 	case 606:

@@ -48,8 +48,8 @@ void SignalingEventsJni::onRegisterFailure(RegisterReason reason) {
     LOGI("%s reason = %d", __FUNCTION__, reason);
     ScopedJni jni;
     jmethodID m = GetMethodID(jni.GetEnv(), j_observer_class_,
-                              "onRegisterFailure", "()V");
-    jni.GetEnv()->CallVoidMethod(j_observer_global_, m);
+                              "onRegisterFailure", "(I)V");
+    jni.GetEnv()->CallVoidMethod(j_observer_global_, m, (int)reason);
 }
 
 void SignalingEventsJni::onCallProcess() {

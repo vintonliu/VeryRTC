@@ -434,6 +434,9 @@ static void call_failure(SalOp *op, SalError error, SalReason sr, const char *de
 	} else if (sr == SalReasonBusy) {
 		call->reason=LinphoneReasonBusy;
 		linphone_call_set_state(call,LinphoneCallError,"User is busy.");
+	} else if (sr == SalReasonTemporarilyUnavailable)	{
+		call->reason = LinphoneReasonTemporarilyUnavailable;
+		linphone_call_set_state(call, LinphoneCallError, msg480);
 	} else {
 		linphone_call_set_state(call,LinphoneCallError,msg);
 	}
@@ -542,6 +545,8 @@ static void register_failure(SalOp *op, SalError error, SalReason reason, const 
 		linphone_proxy_config_set_error(cfg, LinphoneReasonBadCredentials);
 	} else if (error == SalErrorNoResponse) {
 		linphone_proxy_config_set_error(cfg, LinphoneReasonNoResponse);
+	} else if (error == SalErrorFailure && reason == SalReasonNotFound)	{
+		linphone_proxy_config_set_error(cfg, LinphoneReasonNotFound);
 	}
 	linphone_proxy_config_set_state(cfg,LinphoneRegistrationFailed,details);
 	

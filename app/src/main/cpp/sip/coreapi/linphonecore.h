@@ -252,7 +252,8 @@ enum _LinphoneReason{
 	LinphoneReasonDeclined, /**<The call has been declined*/
 	LinphoneReasonNotFound, /**<Destination of the calls was not found.*/
 	LinphoneReasonNotAnswered, /**<The call was not answered in time*/
-	LinphoneReasonBusy /**<Phone line was busy */
+	LinphoneReasonBusy, /**<Phone line was busy */
+	LinphoneReasonTemporarilyUnavailable, /**<Temporarily unavailable> */
 };
 
 /**

@@ -65,6 +65,7 @@ struct SalOp{
 	int sid;
 	int nid;
 	int expires;
+	int r_retry; /* register auth retry */
 	SalMediaDescription *result;
 	sdp_message_t *sdp_answer;
 	eXosip_event_t *pending_auth;

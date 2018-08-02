@@ -200,7 +200,7 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 	switch (cstate) {
 	case LinphoneCallEnd:
 	{
-		printf("Call %i with %s ended (%s).\n", id, from, linphone_reason_to_string(linphone_call_get_reason(call)));
+		printf("Call %li with %s ended (%s).\n", id, from, linphone_reason_to_string(linphone_call_get_reason(call)));
 		sipclient->_current_call = nullptr;
 
 		if (sipclient->_events)
@@ -210,7 +210,7 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 	}
 		break;
 	case LinphoneCallResuming:
-		printf("Resuming call %i with %s.\n", id, from);
+		printf("Resuming call %li with %s.\n", id, from);
 		break;
 	case LinphoneCallStreamsRunning:
 	{
@@ -222,13 +222,13 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 	}
 		break;
 	case LinphoneCallPausing:
-		printf("Pausing call %i with %s.\n", id, from);
+		printf("Pausing call %li with %s.\n", id, from);
 		break;
 	case LinphoneCallPaused:
-		printf("Call %i with %s is now paused.\n", id, from);
+		printf("Call %li with %s is now paused.\n", id, from);
 		break;
 	case LinphoneCallPausedByRemote:
-		printf("Call %i has been paused by %s.\n", id, from);
+		printf("Call %li has been paused by %s.\n", id, from);
 		break;
 	case LinphoneCallIncomingReceived:
 	{
@@ -247,12 +247,12 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 		printf("Establishing call id to %s, assigned id %i\n", from, id);
 		break;
 	case LinphoneCallUpdatedByRemote:		
-		printf("Call %i to %s update by remote.\n", id, from);
+		printf("Call %li to %s update by remote.\n", id, from);
 		linphone_core_defer_call_update(lc, call);
 		break;
 	case LinphoneCallOutgoingProgress:
 	{
-		printf("Call %i to %s in progress.\n", id, from);
+		printf("Call %li to %s in progress.\n", id, from);
 		if (sipclient->_events)
 		{
 			sipclient->_events->onCallProcess();
@@ -261,7 +261,7 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 		break;
 	case LinphoneCallOutgoingRinging:
 	{
-		printf("Call %i to %s ringing.\n", id, from);
+		printf("Call %li to %s ringing.\n", id, from);
 		if (sipclient->_events)
 		{
 			sipclient->_events->onCallRinging();
@@ -270,7 +270,7 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 		break;
 	case LinphoneCallConnected:
 	{
-		printf("Call %i with %s connected.\n", id, from);
+		printf("Call %li with %s connected.\n", id, from);
 		if (sipclient->_events)
 		{
 			SignalingParameters param;
@@ -282,7 +282,7 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 		break;
 	case LinphoneCallOutgoingEarlyMedia:
 	{
-		printf("Call %i with %s early media.\n", id, from);
+		printf("Call %li with %s early media.\n", id, from);
 		if (sipclient->_events)
 		{
 			sipclient->_events->onCallRinging();
@@ -291,7 +291,7 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 		break;
 	case LinphoneCallError:
 	{
-		printf("Call %i with %s error.\n", id, from);
+		printf("Call %li with %s error.\n", id, from);
 		sipclient->_current_call = nullptr;
 
 		if (sipclient->_events)
@@ -320,6 +320,9 @@ void SipClient::callStateCb(LinphoneCore * lc, LinphoneCall * call, LinphoneCall
 				break;
 			case LinphoneReasonBusy:
 				reason = CallReasonBusy;
+				break;
+			case LinphoneReasonTemporarilyUnavailable:
+				reason = CallReasonTemporarilyUnavailable;
 				break;
 			default:
 				break;
@@ -360,6 +363,7 @@ void SipClient::registrationStateCb(LinphoneCore * lc, LinphoneProxyConfig * cfg
 		{
 			client->_events->onRegistered(false);
 		}
+		linphone_core_clear_proxy_config(lc);
 	}
 	break;
 
@@ -377,16 +381,25 @@ void SipClient::registrationStateCb(LinphoneCore * lc, LinphoneProxyConfig * cfg
 			case LinphoneReasonBadCredentials:
 				reason = RegisterReasonBadCredentials;
 				break;
+			case LinphoneReasonNotFound:
+				reason = RegisterReasonNotFound;
+				break;
 			case LinphoneReasonNoResponse:
 				reason = RegisterReasonNoResponse;
 				break;
 			default:
 				break;
 			}
+
+			if (reason == RegisterReasonBadCredentials || reason == RegisterReasonNotFound)
+			{
+				linphone_core_clear_proxy_config(lc);
+			}
 			client->_events->onRegisterFailure(reason);
 		}
 	}
 		break;
+
 	default:
 		break;
 	}

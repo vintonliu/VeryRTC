@@ -30,7 +30,7 @@ ADD_DEFINITIONS(-DANDROID
 
 
 INCLUDE(src/main/cpp/sip/osip/CMakeLists.txt)
-INCLUDE(src/main/cpp/sip/cares/CMakeLists.txt)
+INCLUDE(src/main/cpp/sip/c-ares/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/exosip/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/coreapi/CMakeLists.txt)
 

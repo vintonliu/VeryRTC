@@ -41,7 +41,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 #include <math.h>
 #ifndef WIN32
-#include <ares_ipv6.h>
 #include <netdb.h>
 #endif
 
