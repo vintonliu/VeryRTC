@@ -773,7 +773,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       videoCapturer = createVideoCapturer();
     }
     peerConnectionClient.createPeerConnection(
-        localProxyVideoSink, remoteRenderers, videoCapturer, signalingParameters);
+        localProxyVideoSink, remoteRenderers, videoCapturer, signalingParameters.iceServers);
 
     if (signalingParameters.initiator) {
       logAndToast("Creating OFFER...");

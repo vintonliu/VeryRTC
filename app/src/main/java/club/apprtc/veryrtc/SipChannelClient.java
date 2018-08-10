@@ -39,6 +39,10 @@ class SipChannelClient {
 
     private native boolean doSendCandidate(String candidate);
 
+    private native boolean doSetUserAgent(String uname, String uver);
+
+    private native boolean doSetSipTransport(int transport, int port);
+
     private final long nativeObserver;
     private final long nativeClient;
     public SipChannelClient(SipNativeObserver observer) {
@@ -95,5 +99,17 @@ class SipChannelClient {
             return false;
         }
         return doSendCandidate(candidate);
+    }
+
+    public boolean pub_doSetUserAgent(String uname, String uver) {
+        if (uname.isEmpty() || uver.isEmpty()) {
+            return false;
+        }
+
+        return doSetUserAgent(uname, uver);
+    }
+
+    public boolean pub_doSetSipTransport(int transport, int port) {
+        return doSetSipTransport(transport, port);
     }
 }

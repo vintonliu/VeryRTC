@@ -3,6 +3,7 @@ package club.apprtc.veryrtc;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.v4.content.ContextCompat;
@@ -164,6 +165,8 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     }
 
     public boolean doInitialize() {
+        String uname = "MRTC/" + Build.MODEL + "/" + Build.BRAND;
+        sipClientAPI.doSetUserAgent(uname, BuildConfig.VERSION_NAME);
         return true;
     }
 
@@ -243,6 +246,11 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     public boolean doStartCall(final String toUser, final boolean videoCall) {
         if (videoCall && (pipRenderer == null || fullscreenRenderer == null)) {
             Logging.e(TAG, "Video render view is null.");
+            return false;
+        }
+
+        if (sipClientAPI.isInCall()) {
+            Logging.w(TAG, "Already have in call now");
             return false;
         }
 
@@ -399,6 +407,14 @@ class MRTCManager implements SipClientAPI.SipClientListener,
         }
 
         return speakerMuteEnabled;
+    }
+
+    public boolean doSetSipTransport(int transport, int port) {
+        if (sipClientAPI == null) {
+            return false;
+        }
+
+        return sipClientAPI.doSetSipTransport(transport, port);
     }
 
     private void createAudioManager() {
@@ -778,7 +794,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     }
 
     @Override
-    public void onLocalDescription(SessionDescription sdp) {
+    public void onLocalDescription(final SessionDescription sdp) {
         workHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -796,7 +812,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     }
 
     @Override
-    public void onIceCandidate(IceCandidate candidate) {
+    public void onIceCandidate(final IceCandidate candidate) {
         workHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -806,12 +822,13 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     }
 
     @Override
-    public void onIceCandidatesRemoved(IceCandidate[] candidates) {
+    public void onIceCandidatesRemoved(final IceCandidate[] candidates) {
         Logging.d(TAG, "onIceCandidatesRemoved");
     }
 
     @Override
     public void onIceConnected() {
+        Logging.d(TAG, "onIceConnected" );
         workHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -823,6 +840,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
 
     @Override
     public void onIceDisconnected() {
+        Logging.d(TAG, "onIceDisconnected" );
         workHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -834,11 +852,11 @@ class MRTCManager implements SipClientAPI.SipClientListener,
 
     @Override
     public void onPeerConnectionClosed() {
-
+        Logging.d(TAG, "onPeerConnectionClosed" );
     }
 
     @Override
-    public void onPeerConnectionStatsReady(StatsReport[] reports) {
+    public void onPeerConnectionStatsReady(final StatsReport[] reports) {
         workHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -850,7 +868,8 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     }
 
     @Override
-    public void onPeerConnectionError(String description) {
+    public void onPeerConnectionError(final String description) {
+        Logging.d(TAG, "onPeerConnectionError description " + description);
         reportError(description);
     }
 

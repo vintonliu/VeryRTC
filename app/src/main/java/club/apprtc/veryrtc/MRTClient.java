@@ -74,6 +74,63 @@ public class MRTClient {
     public final static String keyprefNegotiated = "negotiated_key";
     /* Set data channel Id */
     public final static String keyprefDataId = "data_id_key";
+    /* Set ice servers json string */
+    private final static String keyprefIceServers = "ice_servers_mkey";
+
+    public enum VideoResolution {
+        VR320X240("320 x 240"),
+        VR640X480("640 x 480"),
+        VR1280X720("1280 x 720")
+        ;
+        private String name;
+        VideoResolution(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    public enum VideoCodec {
+        VP8("VP8"),
+        VP9("VP9"),
+        H264_BASELINE("H264 Baseline"),
+        H264_HIGH("H264 High")
+        ;
+        private String name;
+        VideoCodec(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    public enum AudioCodec {
+        OPUS("OPUS"),
+        ISAC("ISAC")
+        ;
+        private String name;
+        AudioCodec(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    public enum MSipTransport {
+        MSipTransportUDP, /*UDP*/
+        MSipTransportTCP, /*TCP*/
+        MSipTransportTLS, /*TLS*/
+        MSipTransportDTLS /*DTLS*/
+    }
 
     private MRTCManager mrtcManager;
     private static final MRTClient ourInstance = new MRTClient();
@@ -352,5 +409,23 @@ public class MRTClient {
         }
 
         return mrtcManager.doSetSpeakerMute(enable);
+    }
+
+    /**
+     * Set sip transport layer protocol and local listen port
+     * @param transport transport protocol, see @enum MSipTransport for detail
+     * @param port sip local listen port, >= 0, set 0 to use random port
+     * @return operate success or not
+     */
+    public synchronized boolean doSetSipTransport(MSipTransport transport, int port) {
+        if (!mrtcManager.isInitialized()) {
+            return false;
+        }
+
+        if (port < 0 && port >= 65535) {
+            return false;
+        }
+
+        return mrtcManager.doSetSipTransport(transport.ordinal(), port);
     }
 }

@@ -5,6 +5,7 @@
 namespace mrtc {
 enum SipReason
 {
+	// Keep in sync with linphonecore.h!
 	SipReasonNone,
 	SipReasonNoResponse,
 	SipReasonBadCredentials,
@@ -14,6 +15,8 @@ enum SipReason
 	SipReasonBusy,
 	SipReasonTemporarilyUnavailable,
 	SipReasonCancel,
+	SipReasonRequestTimeout,
+	SipReasonServerInternalServer,
 	SipReasonUnknown
 };
 

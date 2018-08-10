@@ -13,4 +13,5 @@ public interface OnCallEvents {
     void onVideoScalingSwitch(RendererCommon.ScalingType scalingType);
     void onCaptureFormatChange(int width, int height, int framerate);
     boolean onToggleMic();
+    boolean onToggleSpeaker();
 }

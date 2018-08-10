@@ -45,6 +45,7 @@ public class SipCallActivity extends Activity implements OnClientListener,
     private long callStartedTimeMs = 0;
     private boolean isError;
     private boolean micEnabled = true;
+    private boolean speakerEnabled = true;
     private boolean screencaptureEnabled = false;
     private boolean videoCall = true;
     private boolean outgoing = true;
@@ -234,6 +235,13 @@ public class SipCallActivity extends Activity implements OnClientListener,
         micEnabled = !micEnabled;
         MRTClient.getInstance().doToggleMic(micEnabled);
         return micEnabled;
+    }
+
+    @Override
+    public boolean onToggleSpeaker() {
+        speakerEnabled = !speakerEnabled;
+        MRTClient.getInstance().doToggleSpeaker(speakerEnabled);
+        return speakerEnabled;
     }
 
     // Helper functions.

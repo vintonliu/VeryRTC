@@ -255,6 +255,8 @@ enum _LinphoneReason{
 	LinphoneReasonBusy, /**<Phone line was busy */
 	LinphoneReasonTemporarilyUnavailable, /**<Temporarily unavailable> */
 	LinphoneReasonCancel,	/**<User cancel> */
+	LinphoneReasonRequestTimeout,   /**<Request failure, like 408(Request timeout)>*/
+	LinphoneReasonServerInternalServer, /**<status code is 5xx>*/
 };
 
 /**
@@ -842,10 +844,6 @@ int linphone_core_get_in_call_timeout(LinphoneCore *lc);
 void linphone_core_set_delayed_timeout(LinphoneCore *lc, int seconds);
 
 int linphone_core_get_delayed_timeout(LinphoneCore *lc);
-
-int linphone_core_set_sip_random_port(LinphoneCore *lc, bool_t val);
-
-bool_t linphone_core_get_sip_random_port(LinphoneCore *lc);
 
 void linphone_core_set_nat_address(LinphoneCore *lc, const char *addr);
 

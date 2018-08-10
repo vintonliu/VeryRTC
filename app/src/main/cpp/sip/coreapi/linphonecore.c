@@ -503,8 +503,12 @@ static void sip_config_read(LinphoneCore *lc)
 	
 	memset(&tr, 0x00, sizeof(tr));
 	/* default udp transport */
-	tr.transport = LcTransportUDP;
+	//tr.transport = LcTransportUDP;
+	tr.transport = LcTransportTLS;
 	tr.udp_port = 5060;
+	tr.tcp_port = 5060;
+	tr.tls_port = 5061;
+	tr.dtls_port = 5061;
 
 	if (lc->sip_conf.sip_random_port)
 	{
@@ -860,7 +864,44 @@ int linphone_core_set_sip_transports(LinphoneCore *lc, const LCSipTransports * t
 
 	if (transports_unchanged(tr,&lc->sip_conf.transports))
 		return 0;
-	memcpy(&lc->sip_conf.transports,tr,sizeof(*tr));
+
+	lc->sip_conf.transports.transport = tr->transport;
+
+	int random_port = generate_random_port();
+	random_port = random_port <= 0 ? 5060 : random_port;
+	
+	if (tr->transport == LcTransportTCP)
+	{
+		lc->sip_conf.transports.tcp_port = tr->tcp_port;
+		if (tr->tcp_port == 0)
+		{
+			lc->sip_conf.transports.tcp_port = random_port;
+		}
+	}
+	else if (tr->transport == LcTransportTLS)
+	{
+		lc->sip_conf.transports.tls_port = tr->tls_port;
+		if (tr->tls_port == 0)
+		{
+			lc->sip_conf.transports.tls_port = random_port;
+		}		
+	}
+	else if (tr->transport == LcTransportDTLS)
+	{
+		lc->sip_conf.transports.dtls_port = tr->dtls_port;
+		if (tr->dtls_port == 0)
+		{
+			lc->sip_conf.transports.dtls_port = random_port;
+		}
+	}
+	else
+	{
+		lc->sip_conf.transports.udp_port = tr->udp_port;
+		if (tr->udp_port == 0)
+		{
+			lc->sip_conf.transports.udp_port = random_port;
+		}
+	}
 
 	if (lc->sal==NULL) return 0;
 	return apply_transports(lc);
@@ -2229,51 +2270,6 @@ void linphone_core_set_delayed_timeout(LinphoneCore *lc, int seconds) {
 	lc->sip_conf.delayed_timeout = seconds;
 }
 
-/**
- * Set the sip listen port to use random port or not
- */
-int linphone_core_set_sip_random_port(LinphoneCore * lc, bool_t val)
-{
-	if (lc->sip_conf.sip_random_port != val)
-	{
-		lc->sip_conf.sip_random_port = val;
-		int random_port = generate_random_port();
-		random_port = random_port <= 0 ? 5060:random_port;
-
-		LCSipTransports *tr = &lc->sip_conf.transports;
-		if (tr->transport == LcTransportTCP)
-		{
-			tr->tcp_port = random_port;
-		}
-		else if (tr->transport == LcTransportTLS)
-		{
-			tr->tls_port = random_port;
-		}
-		else if (tr->transport == LcTransportDTLS)
-		{
-			tr->dtls_port = random_port;
-		}
-		else
-		{
-			tr->udp_port = random_port;
-		}
-		
-		if (lc->sal == NULL) return 0;
-
-		return apply_transports(lc);
-	}
-
-	return 0;
-}
-
-/**
- * Returns if use sip random port
- */
-bool_t linphone_core_get_sip_random_port(LinphoneCore * lc)
-{
-	return lc->sip_conf.sip_random_port;
-}
-
 #if 0
 void linphone_core_set_presence_info(LinphoneCore *lc,int minutes_away,
 													const char *contact,
@@ -2760,6 +2756,12 @@ const char *linphone_reason_to_string(LinphoneReason err){
 			return "Busy";
 		case LinphoneReasonTemporarilyUnavailable:
 			return "Temporarily unavailable";
+		case LinphoneReasonCancel:
+			return "User Cancel";
+		case LinphoneReasonRequestTimeout:
+			return "Request timeout";
+		case LinphoneReasonServerInternalServer:
+			return "Server internal error";
 	}
 	return "unknown error";
 }

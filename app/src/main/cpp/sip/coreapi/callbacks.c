@@ -342,7 +342,7 @@ static void call_terminated(SalOp *op, const char *from){
 		default:
 		break;
 	}
-	ms_message("Current call terminated...");
+	ms_message("Current call terminated by %s.", from);
 		
 	if (lc->vtable.show!=NULL)
 		lc->vtable.show(lc);
@@ -438,6 +438,16 @@ static void call_failure(SalOp *op, SalError error, SalReason sr, const char *de
 		call->reason = LinphoneReasonTemporarilyUnavailable;
 		linphone_call_set_state(call, LinphoneCallError, msg480);
 	} else {
+		if (code == 408) {
+			if ((linphone_call_get_state(call) == LinphoneCallOutgoingRinging)
+				|| (linphone_call_get_state(call) == LinphoneCallOutgoingEarlyMedia)) {
+				call->reason = LinphoneReasonNotAnswered;
+			} else {
+				call->reason = LinphoneReasonRequestTimeout;
+			}
+		} else if (code >= 500 && code < 600)	{
+			call->reason = LinphoneReasonServerInternalServer;
+		}
 		linphone_call_set_state(call,LinphoneCallError,msg);
 	}
 }

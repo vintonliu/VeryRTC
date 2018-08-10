@@ -33,6 +33,7 @@ public class SipCallFragment extends Fragment {
   private ImageButton cameraSwitchButton;
   private ImageButton videoScalingButton;
   private ImageButton toggleMuteButton;
+  private ImageButton toggleSpeakerButton;
   private ImageButton rejectButton;
   private ImageButton connectButton;
   private TextView captureFormatText;
@@ -55,6 +56,7 @@ public class SipCallFragment extends Fragment {
     cameraSwitchButton = (ImageButton) controlView.findViewById(R.id.button_call_switch_camera);
     videoScalingButton = (ImageButton) controlView.findViewById(R.id.button_call_scaling_mode);
     toggleMuteButton = (ImageButton) controlView.findViewById(R.id.button_call_toggle_mic);
+    toggleSpeakerButton = (ImageButton) controlView.findViewById(R.id.button_call_toggle_speaker);
     rejectButton = (ImageButton) controlView.findViewById(R.id.button_call_reject);
     connectButton = (ImageButton) controlView.findViewById(R.id.button_call_connect);
     captureFormatText = (TextView) controlView.findViewById(R.id.capture_format_text_call);
@@ -114,7 +116,15 @@ public class SipCallFragment extends Fragment {
       @Override
       public void onClick(View view) {
         boolean enabled = callEvents.onToggleMic();
-        toggleMuteButton.setAlpha(enabled ? 1.0f : 0.3f);
+        toggleMuteButton.setImageResource(enabled ? R.drawable.ic_micphone_on : R.drawable.ic_micphone_off);
+      }
+    });
+
+    toggleSpeakerButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        boolean enabled = callEvents.onToggleSpeaker();
+        toggleSpeakerButton.setImageResource(enabled ? R.drawable.ic_speaker_on : R.drawable.ic_speaker_off);
       }
     });
 

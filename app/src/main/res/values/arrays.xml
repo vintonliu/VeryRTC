@@ -55,6 +55,8 @@
 
     <string-array name="roomListContextMenu">
         <item>Remove favorite</item>
+        <item>Audio Call</item>
+        <item>Video Call</item>
     </string-array>
 
 </resources>

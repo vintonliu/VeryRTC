@@ -22,6 +22,7 @@
     <string name="muted">Muted</string>
     <string name="toggle_debug">Toggle debug view</string>
     <string name="toggle_mic">Toggle microphone on/off</string>
+    <string name="toggle_speaker">Toggle speaker on/off</string>
     <string name="action_settings">Settings</string>
     <string name="action_loopback">Loopback connection</string>
     <string name="connect_description">Connect to the room</string>
@@ -217,7 +218,7 @@
     <!-- Strings related to login -->
     <string name="pref_sip_username">sip_username_preference</string>
     <string name="pref_sip_userpwd">sip_userpwd_preference</string>
-    <string name="pref_proxy_server_url_default">111.230.33.170</string>
+    <string name="pref_proxy_server_url_default">120.132.120.95</string>
     <string name="prompt_login">Please Input Username and Password: </string>
     <string name="prompt_username">Username</string>
     <string name="prompt_password">Password</string>

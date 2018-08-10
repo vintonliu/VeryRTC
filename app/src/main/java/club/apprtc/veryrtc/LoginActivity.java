@@ -34,11 +34,14 @@ import java.util.ArrayList;
 public class LoginActivity extends AppCompatActivity implements OnClientListener {
     private final static String TAG = "LoginActivity";
     private static final int REMOVE_FAVORITE_INDEX = 0;
+    private static final int AUDIO_CALL_INDEX = 1;
+    private static final int VIDEO_CALL_INDEX = 2;
     private static final int CONNECTION_REQUEST = 1;
 
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
     private static final int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 101;
     private static final int MY_PERMISSIONS_REQUEST = 102;
+    private static final int MY_PERMISSIONS_STOREAGE_WRITE = 1003;
 
     private EditText edtUserName, edtPassword, edtCallee;
     private LinearLayout llLoginPanel, llLogonPanel;
@@ -101,9 +104,9 @@ public class LoginActivity extends AppCompatActivity implements OnClientListener
     @Override
     protected void onStart() {
         super.onStart();
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(keyprefRoomServerUrl, getString(R.string.pref_proxy_server_url_default));
-        editor.commit();
+//        SharedPreferences.Editor editor = sharedPref.edit();
+//        editor.putString(keyprefRoomServerUrl, getString(R.string.pref_proxy_server_url_default));
+//        editor.commit();
     }
 
     private AdapterView.OnItemClickListener roomListClickListener = new AdapterView.OnItemClickListener() {
@@ -132,6 +135,11 @@ public class LoginActivity extends AppCompatActivity implements OnClientListener
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA},
                     MY_PERMISSIONS_REQUEST_CAMERA);
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_STOREAGE_WRITE);
         }
     }
 
@@ -186,6 +194,18 @@ public class LoginActivity extends AppCompatActivity implements OnClientListener
                     (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
             roomList.remove(info.position);
             adapter.notifyDataSetChanged();
+            return true;
+        } else if (item.getItemId() == AUDIO_CALL_INDEX) {
+            AdapterView.AdapterContextMenuInfo info =
+                    (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+            String callee = roomList.get(info.position);
+            connectToCall(true, callee, false);
+            return true;
+        } else if (item.getItemId() == VIDEO_CALL_INDEX) {
+            AdapterView.AdapterContextMenuInfo info =
+                    (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+            String callee = roomList.get(info.position);
+            connectToCall(true, callee, true);
             return true;
         }
 

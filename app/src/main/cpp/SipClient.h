@@ -11,56 +11,26 @@
 #include "coreapi/linphonecore.h"
 #include "SignalingEvents.h"
 
-namespace mrtc {
-
-#ifdef SIP_TEST
-	typedef struct RegisterInfo
-	{
-		RegisterInfo(std::string proxy,
-								std::string display,
-								std::string username,
-								std::string authname,
-								std::string authpwd,
-								std::string realm) 
-		: proxy(proxy)
-		, display(display)
-		, username(username)
-		, authname(authname)
-		, authpwd(authpwd)
-		, realm(realm){			
-		}
-
-		RegisterInfo(std::string proxy,
-			std::string display,
-			std::string username,
-			std::string authname,
-			std::string authpwd)
-			: proxy(proxy)
-			, display(display)
-			, username(username)
-			, authname(authname)
-			, authpwd(authpwd) {
-		}
-
-		bool operator == (const RegisterInfo &info) {
-			return ((!proxy.compare(info.proxy)) &&
-						  (!display.compare(info.display)) &&
-							(!username.compare(info.username)) &&
-							(!authname.compare(info.authname)) &&
-							(!authpwd.compare(info.authpwd)) &&
-							(!realm.compare(info.realm)));
-		}
-
-		std::string proxy;
-		std::string display;
-		std::string username;
-		std::string authname;
-		std::string authpwd;
-		std::string realm;
-	} RegisterInfo;
+#ifdef _WIN32
+#ifdef DLL_API_EXPORTS
+#define MDLL_API __declspec(dllexport)
+#pragma warning(disable:4251)
+#else  
+#define MDLL_API __declspec(dllimport)  
+#endif
+#else
+#define MDLL_API
 #endif
 
-class SipClient
+namespace mrtc {
+typedef enum {
+	MSipTransportUDP, /*UDP*/
+	MSipTransportTCP, /*TCP*/
+	MSipTransportTLS, /*TLS*/
+	MSipTransportDTLS /*DTLS*/
+} MSipTransport;
+
+class MDLL_API SipClient
 {
 public:
 	explicit SipClient(SignalingEvents *events);
@@ -75,6 +45,13 @@ public:
 	 * Initialize Linphone core callback table
 	 */
 	void initVtable();
+
+	/**
+	 * Set sip listen transport and local port
+	 * @param transport see @MSipTransport
+	 * @port  local listen port
+	 */
+	int32_t doSetSipTransport(MSipTransport transport, uint32_t port);
 
 	/**
 	 * Build and send Initialize REGISTER message.
@@ -119,6 +96,8 @@ public:
 	 */
 	int32_t doSendCandidate(const std::string &candidate = "");
 	
+	bool doSetUserAgent(const std::string &uname, const std::string &uver);
+
 	/* LinphoneCoreVTable callbacks */
 	static void globalStateCb(LinphoneCore *lc, LinphoneGlobalState gstate, const char *message);
 	static void callStateCb(LinphoneCore *lc, LinphoneCall *call, LinphoneCallState cstate, const char *message);

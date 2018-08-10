@@ -51,7 +51,8 @@ int32_t SipClient::initialize()
 	linphone_core_set_log_level(lvl);
 	_ptrLc = linphone_core_new_with_config(&_vtable, this);
 
-	//linphone_core_set_sip_random_port(_ptrLc, TRUE);
+	// random local port
+	doSetSipTransport(MSipTransportTLS, 0);
 	
 	_running = true;
 	_iterate_thread.reset(new std::thread(&SipClient::SipIterate, this));
@@ -77,6 +78,16 @@ void SipClient::initVtable()
 	_vtable.display_warning = displayWarning;
 	_vtable.display_url = nullptr;
 	_vtable.show = nullptr;
+}
+
+int32_t SipClient::doSetSipTransport(MSipTransport transport, uint32_t port)
+{
+	INITIALIZED_CHECK_VALUE(-1);
+	LCSipTransports tr;
+	tr.transport = (LCSipTransport)transport;
+	tr.udp_port = tr.dtls_port = tr.tcp_port = tr.tls_port = port;
+
+	return linphone_core_set_sip_transports(_ptrLc, &tr);
 }
 
 int32_t SipClient::doRegister(const std::string &proxy, const std::string &display,
@@ -178,6 +189,19 @@ int32_t SipClient::doSendCandidate(const std::string & candidate)
 	}
 
 	return linphone_call_send_candidate_message(linphone_core_get_current_call(_ptrLc), candidate.c_str());
+}
+
+bool SipClient::doSetUserAgent(const std::string & uname, const std::string & uver)
+{
+	INITIALIZED_CHECK_VALUE(false);
+
+	if (uname.empty() || uver.empty())
+	{
+		return false;
+	}
+
+	linphone_core_set_user_agent(_ptrLc, uname.c_str(), uver.c_str());
+	return true;
 }
 
 void SipClient::globalStateCb(LinphoneCore * lc, LinphoneGlobalState gstate, const char * message)

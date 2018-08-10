@@ -153,7 +153,7 @@ public class AppRTCAudioManager {
       hasWiredHeadset = (state == STATE_PLUGGED);
       updateAudioDeviceState();
     }
-  };
+  }
 
   /** Construction. */
   static AppRTCAudioManager create(Context context) {
@@ -468,7 +468,8 @@ public class AppRTCAudioManager {
     Log.d(TAG, "Device status: "
             + "available=" + audioDevices + ", "
             + "selected=" + selectedAudioDevice + ", "
-            + "user selected=" + userSelectedAudioDevice);
+            + "user selected=" + userSelectedAudioDevice + ", "
+            + "def select=" + defaultAudioDevice);
 
     // Check if any Bluetooth headset is connected. The internal BT state will
     // change accordingly.
@@ -575,7 +576,11 @@ public class AppRTCAudioManager {
       // phone (on a tablet), or speaker phone and earpiece (on mobile phone).
       // |defaultAudioDevice| contains either AudioDevice.SPEAKER_PHONE or AudioDevice.EARPIECE
       // depending on the user's selection.
-      newAudioDevice = defaultAudioDevice;
+      if (userSelectedAudioDevice != AudioDevice.NONE) {
+        newAudioDevice = userSelectedAudioDevice;
+      } else {
+        newAudioDevice = defaultAudioDevice;
+      }
     }
     // Switch to new device but only if there has been any changes.
     if (newAudioDevice != selectedAudioDevice || audioDeviceSetUpdated) {

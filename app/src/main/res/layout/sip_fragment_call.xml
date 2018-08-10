@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_above="@+id/buttons_call_container"
+        android:text="test"
         android:textSize="24sp"
         android:layout_margin="8dp"/>
 
@@ -58,7 +58,7 @@
 
        <ImageButton
            android:id="@+id/button_call_switch_camera"
-           android:background="@android:drawable/ic_menu_camera"
+           android:background="@drawable/ic_overturn_camera"
            android:contentDescription="@string/switch_camera"
            android:layout_marginEnd="8dp"
            android:layout_width="48dp"
@@ -73,11 +73,18 @@
 
        <ImageButton
            android:id="@+id/button_call_toggle_mic"
-           android:background="@android:drawable/ic_btn_speak_now"
+           android:background="@drawable/ic_micphone_on"
            android:contentDescription="@string/toggle_mic"
            android:layout_marginEnd="8dp"
            android:layout_width="48dp"
            android:layout_height="48dp"/>
+
+        <ImageButton
+            android:id="@+id/button_call_toggle_speaker"
+            android:background="@drawable/ic_speaker_on"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/toggle_speaker"/>
     </LinearLayout>
 
     <TextView

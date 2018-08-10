@@ -750,18 +750,11 @@ _eXosip_guess_ip_for_destinationsock (struct eXosip_t *excontext, int family, in
 
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 
-#include <sys/ioctl.h>
 #include <net/if.h>
 #include <unistd.h>
-#include <sys/param.h>
 
 #include <stdio.h>
-#include <linux/in6.h>
 
 #ifdef HAVE_GETIFADDRS
 

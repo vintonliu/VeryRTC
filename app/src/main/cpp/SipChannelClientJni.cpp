@@ -177,6 +177,36 @@ JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doSendCandi
     return (jboolean)sipClient->doSendCandidate(candidate);
 }
 
+/*
+ * Class:     club_apprtc_veryrtc_SipChannelClient
+ * Method:    doSetUserAgent
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doSetUserAgent
+        (JNIEnv *jni, jobject j_sip, jstring j_uname, jstring j_uver)
+{
+    LOGI("%s", __FUNCTION__);
+    SipClient *sipClient = ExtractNativeSipClient(jni, j_sip);
+    std::string uname = JavaToStdString(jni, j_uname);
+    std::string uver = JavaToStdString(jni, j_uver);
+
+    return (jboolean)sipClient->doSetUserAgent(uname, uver);
+}
+
+/*
+ * Class:     com_montnets_mrtc_SipChannelClient
+ * Method:    doSetUserAgent
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_club_apprtc_veryrtc_SipChannelClient_doSetSipTransport
+        (JNIEnv *jni, jobject j_sip, jint j_transport, jint j_port)
+{
+    LOGI("%s", __FUNCTION__);
+    SipClient *sipClient = ExtractNativeSipClient(jni, j_sip);
+
+    return (jboolean)sipClient->doSetSipTransport((MSipTransport)j_transport, j_port);
+}
+
 #ifdef __cplusplus
 }
 #endif

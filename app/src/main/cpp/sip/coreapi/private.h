@@ -350,7 +350,7 @@ void __linphone_core_invalidate_registers(LinphoneCore* lc);
 #define HOLD_ON		(1)
 
 #ifndef NB_MAX_CALLS
-#define NB_MAX_CALLS	(10)
+#define NB_MAX_CALLS	(1)
 #endif
 
 void _linphone_call_params_copy(LinphoneCallParams *params, const LinphoneCallParams *refparams);

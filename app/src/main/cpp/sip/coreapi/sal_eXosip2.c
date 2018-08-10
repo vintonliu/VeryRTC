@@ -375,7 +375,7 @@ static void set_tls_options(Sal *ctx) {
 		eXosip_tls_ctx_t tlsCtx;
 		memset(&tlsCtx, 0, sizeof(tlsCtx));
 		snprintf(tlsCtx.root_ca_cert, sizeof(tlsCtx.client.cert), "%s", ctx->rootCa);
-		eXosip_set_tls_ctx(ctx->osipCtx, &tlsCtx);
+//		eXosip_set_tls_ctx(ctx->osipCtx, &tlsCtx);
 #endif
 	}
 #ifdef HAVE_EXOSIP_TLS_VERIFY_CERTIFICATE
@@ -410,7 +410,8 @@ int sal_listen_port(Sal *ctx, const char *addr, int port, SalTransport tr, int i
 	case SalTransportTCP:
 	case SalTransportTLS:
 		proto = IPPROTO_TCP;
-		if (!ctx->tcp_tls_keepalive) keepalive = -1;
+		if (!ctx->tcp_tls_keepalive)
+			keepalive = -1;
 		eXosip_set_option(ctx->osipCtx, EXOSIP_OPT_UDP_KEEP_ALIVE, &keepalive);
 		set_tls_options(ctx);
 		break;
@@ -1045,7 +1046,7 @@ int sal_call_terminate(SalOp *h) {
 
 	if (!h->base.root->reuse_authorization) pop_auth_from_exosip(h);
 
-	if (err != 0) {
+	if (err < 0) {
 		ms_warning("Exosip could not terminate the call: cid=%i did=%i err=%i", h->cid, h->did, err);
 	}
 	h->terminated = TRUE;

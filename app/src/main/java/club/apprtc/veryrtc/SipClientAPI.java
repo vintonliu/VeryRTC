@@ -75,20 +75,22 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     public enum SipReason {
         /* Mapped Jni reason, must be same order with SipReason in SignalingEvent.h */
-        SIP_REASON_NONE("No error"),
-        SIP_REASON_NO_RESPONSE("No response timeout, please check network"),
-        SIP_REASON_BAD_CREDENTIALS("Bad credentials, please check username and password"),
-        SIP_REASON_DECLINED("Call declined"),
-        SIP_REASON_NOT_FOUND("User not found"),
-        SIP_REASON_NO_ANSWER("User not answer"),
-        SIP_REASON_BUSY("User is busy"),
-        SIP_REASON_TEMPORARILY_UNAVAILABLE("Temporarily unavailable"),
-        SIP_REASON_CANCEL("User cancel"),
-        SIP_REASON_UNKNOWN("unknown error"),
+        SIP_REASON_NONE("成功"),
+        SIP_REASON_NO_RESPONSE("请求无响应"),
+        SIP_REASON_BAD_CREDENTIALS("鉴权错误"),
+        SIP_REASON_DECLINED("对方拒接"),
+        SIP_REASON_NOT_FOUND("用户不存在或不在线"),
+        SIP_REASON_NO_ANSWER("对方未接"),
+        SIP_REASON_BUSY("对方忙"),
+        SIP_REASON_TEMPORARILY_UNAVAILABLE("暂不可用"),
+        SIP_REASON_CANCEL("呼叫取消"),
+        SIP_REASON_REQUEST_TIMEOUT("请求超时"),
+        SIP_REASON_SERVER_INTERNAL_ERROR("服务器内部错误"),
+        SIP_REASON_UNKNOWN("未知错误"),
 
         /* Custom reason in Java layer */
-        SIP_REASON_MEDIA_NOT_ACCEPT("Media not accept"),
-        SIP_REASON_UNDEFINE("undefine");
+        SIP_REASON_MEDIA_NOT_ACCEPT("媒体错误"),
+        ;
 
         private String desc;
         SipReason(String desc) {
@@ -150,6 +152,14 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
         });
 
         listeners.clear();
+    }
+
+    public boolean isInitiator() {
+        if (sessionParameters == null) {
+            return false;
+        }
+
+        return sessionParameters.isInitiator;
     }
 
     public CallState getState() {
@@ -305,12 +315,34 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
         return true;
     }
 
-    public boolean isInitiator() {
-        if (sessionParameters == null) {
+    public boolean doSetUserAgent(final String uname, final String uver) {
+        if (uname.isEmpty() || uver.isEmpty()) {
             return false;
         }
 
-        return sessionParameters.isInitiator;
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                sipclient.pub_doSetUserAgent(uname, uver);
+            }
+        });
+
+        return true;
+    }
+
+    public boolean doSetSipTransport(final int transport, final int port) {
+        if (port < 0) {
+            return false;
+        }
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                sipclient.pub_doSetSipTransport(transport, port);
+            }
+        });
+
+        return true;
     }
 
     @Override

@@ -335,23 +335,18 @@ public class PeerConnectionClient {
   }
 
   public void createPeerConnection(final VideoSink localRender,
-      final VideoRenderer.Callbacks remoteRender, final VideoCapturer videoCapturer,
-      final SignalingParameters signalingParameters) {
+                                   final VideoRenderer.Callbacks remoteRender,
+                                   final VideoCapturer videoCapturer,
+                                   final SignalingParameters signalingParameters) {
     createPeerConnection(
-        localRender, Collections.singletonList(remoteRender), videoCapturer, signalingParameters);
+        localRender, Collections.singletonList(remoteRender), videoCapturer, signalingParameters.iceServers);
   }
 
+
   public void createPeerConnection(final VideoSink localRender,
-                                   final List<VideoRenderer.Callbacks> remoteRenders, final VideoCapturer videoCapturer,
+                                   final List<VideoRenderer.Callbacks> remoteRenders,
+                                   final VideoCapturer videoCapturer,
                                    final List<PeerConnection.IceServer> iceServers) {
-    SignalingParameters signalingParameters = new SignalingParameters(iceServers, false,
-            "", "", "", null, null);
-    createPeerConnection(localRender, remoteRenders, videoCapturer, signalingParameters);
-  }
-
-  public void createPeerConnection(final VideoSink localRender,
-      final List<VideoRenderer.Callbacks> remoteRenders, final VideoCapturer videoCapturer,
-      final SignalingParameters signalingParameters) {
     if (peerConnectionParameters == null) {
       Log.e(TAG, "Creating peer connection without initializing factory.");
       return;
@@ -712,6 +707,10 @@ public class PeerConnectionClient {
     }
     options = null;
     rootEglBase.release();
+
+    // Restore speaker disable mute
+    WebRtcAudioTrack.setSpeakerMute(false);
+
     Log.d(TAG, "Closing peer connection done.");
     events.onPeerConnectionClosed();
     PeerConnectionFactory.stopInternalTracingCapture();
