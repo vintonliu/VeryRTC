@@ -72,6 +72,14 @@ add_library( # Sets the name of the library.
              ${NATIVE_DIR}/SignalingEventsJni.cpp
              ${NATIVE_DIR}/jni_helper.cpp)
 
+# add_library(crypto SHARED IMPORTED)
+# set_target_properties(crypto
+#   PROPERTIES IMPORTED_LOCATION ${OPENSSL_DIR}/lib/${ANDROID_ABI}/libcrypto.so)
+#
+# add_library(ssl SHARED IMPORTED)
+# set_target_properties(ssl
+#   PROPERTIES IMPORTED_LOCATION ${OPENSSL_DIR}/lib/${ANDROID_ABI}/libssl.so)
+
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
@@ -97,7 +105,8 @@ target_link_libraries( # Specifies the target library.
                        # cares
                        # exosip
                        # coreapi
-
+                       # ssl
+                       # crypto
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib})
