@@ -34,12 +34,16 @@ INCLUDE(src/main/cpp/sip/c-ares/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/exosip/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/coreapi/CMakeLists.txt)
 
+set(OPENSSL_DIR ${NATIVE_DIR}/openssl)
+set(OPENSSL_INC ${OPENSSL_DIR}/include)
+
 include_directories(${NATIVE_DIR}
                     ${NATIVE_DIR}/sip
                     ${OSIP2_INC}
                     ${EXOSIP_INC}
                     ${COREAPI_INC}
-                    ${CARES_INC})
+                    ${CARES_INC}
+                    ${OPENSSL_INC})
 
 add_library( # Sets the name of the library.
              Sip
