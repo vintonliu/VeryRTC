@@ -199,6 +199,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
   private boolean callControlFragmentVisible = true;
   private long callStartedTimeMs = 0;
   private boolean micEnabled = true;
+  private boolean speakerPhoneEnabled = true;
   private boolean screencaptureEnabled = false;
   private static Intent mediaProjectionPermissionResultData;
   private static int mediaProjectionPermissionResultCode;
@@ -568,6 +569,16 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       peerConnectionClient.setAudioEnabled(micEnabled);
     }
     return micEnabled;
+  }
+
+  @Override
+  public boolean onToggleSpeaker() {
+    if (peerConnectionClient != null) {
+      speakerPhoneEnabled = !speakerPhoneEnabled;
+      peerConnectionClient.setSpeakerMute(speakerPhoneEnabled);
+    }
+
+    return speakerPhoneEnabled;
   }
 
   // Helper functions.

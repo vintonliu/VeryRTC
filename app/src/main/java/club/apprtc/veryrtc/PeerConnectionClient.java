@@ -140,6 +140,7 @@ public class PeerConnectionClient {
   // remote descriptions are set. Similarly local ICE candidates are sent to
   // remote peer after both local and remote description are set.
   private LinkedList<IceCandidate> queuedRemoteCandidates;
+  private List<PeerConnection.IceServer> iceServers;
   private PeerConnectionEvents events;
   private boolean isInitiator;
   private SessionDescription localSdp; // either offer or answer SDP
@@ -337,9 +338,9 @@ public class PeerConnectionClient {
   public void createPeerConnection(final VideoSink localRender,
                                    final VideoRenderer.Callbacks remoteRender,
                                    final VideoCapturer videoCapturer,
-                                   final SignalingParameters signalingParameters) {
+                                   final List<PeerConnection.IceServer> iceServers) {
     createPeerConnection(
-        localRender, Collections.singletonList(remoteRender), videoCapturer, signalingParameters.iceServers);
+        localRender, Collections.singletonList(remoteRender), videoCapturer, iceServers);
   }
 
 
@@ -355,6 +356,7 @@ public class PeerConnectionClient {
     this.remoteRenders = remoteRenders;
     this.videoCapturer = videoCapturer;
     this.signalingParameters = signalingParameters;
+    this.iceServers = iceServers;
     executor.execute(new Runnable() {
       @Override
       public void run() {
@@ -608,7 +610,7 @@ public class PeerConnectionClient {
     }
 
     PeerConnection.RTCConfiguration rtcConfig =
-        new PeerConnection.RTCConfiguration(signalingParameters.iceServers);
+        new PeerConnection.RTCConfiguration(iceServers);
     // TCP candidates are only useful when connecting to a server that supports
     // ICE-TCP.
     rtcConfig.tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.DISABLED;

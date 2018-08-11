@@ -75,21 +75,21 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     public enum SipReason {
         /* Mapped Jni reason, must be same order with SipReason in SignalingEvent.h */
-        SIP_REASON_NONE("�ɹ�"),
-        SIP_REASON_NO_RESPONSE("��������Ӧ"),
-        SIP_REASON_BAD_CREDENTIALS("��Ȩ����"),
-        SIP_REASON_DECLINED("�Է��ܽ�"),
-        SIP_REASON_NOT_FOUND("�û������ڻ�����"),
-        SIP_REASON_NO_ANSWER("�Է�δ��"),
-        SIP_REASON_BUSY("�Է�æ"),
-        SIP_REASON_TEMPORARILY_UNAVAILABLE("�ݲ�����"),
-        SIP_REASON_CANCEL("����ȡ��"),
-        SIP_REASON_REQUEST_TIMEOUT("����ʱ"),
-        SIP_REASON_SERVER_INTERNAL_ERROR("�������ڲ�����"),
-        SIP_REASON_UNKNOWN("δ֪����"),
+        SIP_REASON_NONE("成功"),
+        SIP_REASON_NO_RESPONSE("请求无响应"),
+        SIP_REASON_BAD_CREDENTIALS("鉴权错误"),
+        SIP_REASON_DECLINED("对方拒接"),
+        SIP_REASON_NOT_FOUND("用户不存在或不在线"),
+        SIP_REASON_NO_ANSWER("对方未接"),
+        SIP_REASON_BUSY("对方忙"),
+        SIP_REASON_TEMPORARILY_UNAVAILABLE("暂不可用"),
+        SIP_REASON_CANCEL("呼叫取消"),
+        SIP_REASON_REQUEST_TIMEOUT("请求超时"),
+        SIP_REASON_SERVER_INTERNAL_ERROR("服务器内部错误"),
+        SIP_REASON_UNKNOWN("未知错误"),
 
         /* Custom reason in Java layer */
-        SIP_REASON_MEDIA_NOT_ACCEPT("ý�����"),
+        SIP_REASON_MEDIA_NOT_ACCEPT("媒体错误"),
         ;
 
         private String desc;

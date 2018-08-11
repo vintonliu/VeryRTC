@@ -852,7 +852,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
 
     @Override
     public void onPeerConnectionClosed() {
-        Logging.d(TAG, "onPeerConnectionClosed" );
+        Log.d(TAG, "onPeerConnectionClosed" );
     }
 
     @Override

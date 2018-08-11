@@ -218,7 +218,7 @@
     <!-- Strings related to login -->
     <string name="pref_sip_username">sip_username_preference</string>
     <string name="pref_sip_userpwd">sip_userpwd_preference</string>
-    <string name="pref_proxy_server_url_default">120.132.120.95</string>
+    <string name="pref_proxy_server_url_default">120.132.120.95:5061</string>
     <string name="prompt_login">Please Input Username and Password: </string>
     <string name="prompt_username">Username</string>
     <string name="prompt_password">Password</string>

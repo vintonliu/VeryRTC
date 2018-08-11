@@ -28,13 +28,14 @@ ADD_DEFINITIONS(-DANDROID
                 -DHAVE_EXOSIP_GET_VERSION
                 -DDONOTWAIT_ENDOFTRANSACTION)
 
+ADD_DEFINITIONS(-DHAVE_OPENSSL_SSL_H)
 
 INCLUDE(src/main/cpp/sip/osip/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/c-ares/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/exosip/CMakeLists.txt)
 INCLUDE(src/main/cpp/sip/coreapi/CMakeLists.txt)
 
-set(OPENSSL_DIR ${NATIVE_DIR}/openssl)
+set(OPENSSL_DIR ${NATIVE_DIR}/3rdparty/openssl)
 set(OPENSSL_INC ${OPENSSL_DIR}/include)
 
 include_directories(${NATIVE_DIR}
@@ -72,13 +73,13 @@ add_library( # Sets the name of the library.
              ${NATIVE_DIR}/SignalingEventsJni.cpp
              ${NATIVE_DIR}/jni_helper.cpp)
 
-# add_library(crypto SHARED IMPORTED)
-# set_target_properties(crypto
-#   PROPERTIES IMPORTED_LOCATION ${OPENSSL_DIR}/lib/${ANDROID_ABI}/libcrypto.so)
-#
-# add_library(ssl SHARED IMPORTED)
-# set_target_properties(ssl
-#   PROPERTIES IMPORTED_LOCATION ${OPENSSL_DIR}/lib/${ANDROID_ABI}/libssl.so)
+add_library(crypto STATIC IMPORTED)
+set_target_properties(crypto
+  PROPERTIES IMPORTED_LOCATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libcrypto.a)
+
+add_library(ssl STATIC IMPORTED)
+set_target_properties(ssl
+  PROPERTIES IMPORTED_LOCATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libssl.a)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -105,8 +106,10 @@ target_link_libraries( # Specifies the target library.
                        # cares
                        # exosip
                        # coreapi
-                       # ssl
-                       # crypto
+
+                       ssl
+                       crypto
+
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib})
