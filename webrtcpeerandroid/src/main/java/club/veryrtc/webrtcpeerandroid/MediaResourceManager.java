@@ -19,8 +19,14 @@ package club.veryrtc.webrtcpeerandroid;
 
 import android.util.Log;
 
+import org.webrtc.Camera1Enumerator;
+import org.webrtc.Camera2Enumerator;
 import org.webrtc.CameraEnumerationAndroid;
+import org.webrtc.CameraEnumerator;
+import org.webrtc.CameraVideoCapturer;
 import org.webrtc.DataChannel;
+import org.webrtc.EglBase.Context;
+import org.webrtc.FileVideoCapturer;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
 import org.webrtc.MediaCodecVideoEncoder;
@@ -29,13 +35,14 @@ import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
-import org.webrtc.VideoCapturerAndroid;
+import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 
-import java.util.EnumSet;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 import club.apprtc.utilitiesandroid.LooperExecutor;
 import club.veryrtc.webrtcpeerandroid.NBMMediaConfiguration.NBMCameraPosition;
@@ -83,7 +90,6 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
     private static final int MAX_VIDEO_WIDTH = 1280;
     private static final int MAX_VIDEO_HEIGHT = 1280;
     private static final int MAX_VIDEO_FPS = 30;
-    private static final int numberOfCameras = CameraEnumerationAndroid.getDeviceCount();
     private static final String MAX_VIDEO_WIDTH_CONSTRAINT = "maxWidth";
     private static final String MIN_VIDEO_WIDTH_CONSTRAINT = "minWidth";
     private static final String MAX_VIDEO_HEIGHT_CONSTRAINT = "maxHeight";
@@ -105,7 +111,9 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
     private MediaConstraints sdpMediaConstraints;
     private boolean videoCallEnabled;
     private boolean renderVideo;
-    private boolean videoSourceStopped;
+    private boolean videoCapturerStopped;
+    private boolean screencaptureEnabled = false;
+    private boolean captureToTexture = true;
     private MediaStream localMediaStream;
     private VideoSource videoSource;
     private VideoTrack localVideoTrack;
@@ -115,8 +123,9 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
 
     private VideoRenderer.Callbacks localRender;
     private NBMWebRTCPeer.NBMPeerConnectionParameters peerConnectionParameters;
-    private VideoCapturerAndroid videoCapturer;
+    private VideoCapturer videoCapturer;
     private NBMCameraPosition currentCameraPosition;
+
 
     MediaResourceManager(NBMWebRTCPeer.NBMPeerConnectionParameters peerConnectionParameters,
                                 LooperExecutor executor, PeerConnectionFactory factory){
@@ -145,7 +154,7 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
         pcConstraints.optional.add(new MediaConstraints.KeyValuePair("internalSctpDataChannels", "true"));
 
         // Check if there is a camera on device and disable video call if not.
-        if (numberOfCameras == 0) {
+        if (videoCapturer == null) {
             Log.w(TAG, "No camera on device. Switch to audio only call.");
             videoCallEnabled = false;
         }
@@ -216,10 +225,14 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                if (videoSource != null && !videoSourceStopped) {
+                if (videoCapturer != null && !videoCapturerStopped) {
                     Log.d(TAG, "Stop video source.");
-                    videoSource.stop();
-                    videoSourceStopped = true;
+                    try {
+                        videoCapturer.stopCapture();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    videoCapturerStopped = true;
                 }
             }
         });
@@ -229,17 +242,19 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                if (videoSource != null && videoSourceStopped) {
+                if (videoCapturer != null && videoCapturerStopped) {
                     Log.d(TAG, "Restart video source.");
-                    videoSource.restart();
-                    videoSourceStopped = false;
+                    videoCapturer.startCapture(peerConnectionParameters.videoWidth,
+                            peerConnectionParameters.videoHeight,
+                            peerConnectionParameters.videoFps);
+                    videoCapturerStopped = false;
                 }
             }
         });
     }
 
-    private VideoTrack createCapturerVideoTrack(VideoCapturerAndroid capturer) {
-        videoSource = factory.createVideoSource(capturer, videoConstraints);
+    private VideoTrack createCapturerVideoTrack(VideoCapturer capturer) {
+        videoSource = factory.createVideoSource(capturer);
         localVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
         localVideoTrack.setEnabled(renderVideo);
         localVideoTrack.addRenderer(new VideoRenderer(localRender));
@@ -290,7 +305,100 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
         executor.execute(new AttachRendererTask(remoteRender, remoteStream));
     }
 
-    void createLocalMediaStream(Object renderEGLContext,final VideoRenderer.Callbacks localRender) {
+    private VideoCapturer createCameraCapturer(CameraEnumerator enumerator) {
+        final String[] deviceNames = enumerator.getDeviceNames();
+
+        for (String deviceName : deviceNames) {
+            Logging.d(TAG, deviceName);
+            final List<CameraEnumerationAndroid.CaptureFormat> formatList =
+                    enumerator.getSupportedFormats(deviceName);
+            for (CameraEnumerationAndroid.CaptureFormat format:
+                    formatList) {
+                Logging.d(TAG, format.toString());
+            }
+        }
+
+        // First, try to find front facing camera
+        Logging.d(TAG, "Looking for front facing cameras.");
+        // If current camera is set to front and the device has one
+        if (currentCameraPosition == NBMCameraPosition.FRONT) {
+            for (String deviceName : deviceNames) {
+                if (enumerator.isFrontFacing(deviceName)) {
+                    Logging.d(TAG, "Creating front facing camera capturer.");
+                    VideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
+
+                    if (videoCapturer != null) {
+                        return videoCapturer;
+                    }
+                }
+            }
+        }
+        // If current camera is set to back and the device has one
+        else if (currentCameraPosition == NBMCameraPosition.BACK) {
+            // Front facing camera not found, try something else
+            for (String deviceName : deviceNames) {
+                if (!enumerator.isFrontFacing(deviceName)) {
+                    Logging.d(TAG, "Creating other camera capturer.");
+                    VideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
+
+                    if (videoCapturer != null) {
+                        return videoCapturer;
+                    }
+                }
+            }
+        }
+        // If current camera is set to any then we pick the first camera of the device, which
+        // should be a back-facing camera according to libjingle API
+        else {
+            for (String deviceName : deviceNames) {
+                if (!enumerator.isFrontFacing(deviceName)) {
+                    Logging.d(TAG, "Creating other camera capturer.");
+                    VideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
+
+                    if (videoCapturer != null) {
+                        currentCameraPosition = NBMCameraPosition.BACK;
+                        return videoCapturer;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private VideoCapturer createVideoCapturer() {
+        VideoCapturer videoCapturer = null;
+        /*if (mSettings.getMpcParameters().videoFileAsCameraEnable &&
+                !mSettings.getMpcParameters().videoFileAsCamera.isEmpty()) {
+            try {
+                videoCapturer = new FileVideoCapturer(mSettings.getMpcParameters().videoFileAsCamera);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else */if (screencaptureEnabled) {
+
+        } else if (peerConnectionParameters.useCamera2) {
+//            if (!captureToTexture()) {
+//                reportError(mContext.getString(R.string.camera2_texture_only_error));
+//                return null;
+//            }
+
+            Logging.d(TAG, "Creating capturer using camera2 API");
+//            videoCapturer = createCameraCapturer(new Camera2Enumerator(mContext));
+        } else {
+            Logging.d(TAG, "Creating capturer using camera1 API");
+            videoCapturer = createCameraCapturer(new Camera1Enumerator(captureToTexture));
+        }
+
+        if (videoCapturer == null) {
+//            reportError("Failed to open camera");
+            return null;
+        }
+        return videoCapturer;
+    }
+
+    void createLocalMediaStream(Context renderEGLContext, final VideoRenderer.Callbacks localRender) {
         if (factory == null) {
             Log.e(TAG, "Peerconnection factory is not created");
             return;
@@ -302,33 +410,13 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
 
         // Set default WebRTC tracing and INFO libjingle logging.
         // NOTE: this _must_ happen while |factory| is alive!
-        Logging.enableTracing("logcat:", EnumSet.of(Logging.TraceLevel.TRACE_DEFAULT), Logging.Severity.LS_INFO);
+        Logging.enableLogToDebugOutput(Logging.Severity.LS_INFO);
 
         localMediaStream = factory.createLocalMediaStream("ARDAMS");
 
         // If video call is enabled and the device has camera(s)
-        if (videoCallEnabled && numberOfCameras > 0) {
-            String cameraDeviceName; // = CameraEnumerationAndroid.getDeviceName(0);
-            String frontCameraDeviceName = CameraEnumerationAndroid.getNameOfFrontFacingDevice();
-            String backCameraDeviceName = CameraEnumerationAndroid.getNameOfBackFacingDevice();
-
-            // If current camera is set to front and the device has one
-            if (currentCameraPosition==NBMCameraPosition.FRONT && frontCameraDeviceName!=null) {
-                cameraDeviceName = frontCameraDeviceName;
-            }
-            // If current camera is set to back and the device has one
-            else if (currentCameraPosition==NBMCameraPosition.BACK && backCameraDeviceName!=null) {
-                cameraDeviceName = backCameraDeviceName;
-            }
-            // If current camera is set to any then we pick the first camera of the device, which
-            // should be a back-facing camera according to libjingle API
-            else {
-                cameraDeviceName = CameraEnumerationAndroid.getDeviceName(0);
-                currentCameraPosition = NBMCameraPosition.BACK;
-            }
-
-            Log.d(TAG, "Opening camera: " + cameraDeviceName);
-            videoCapturer = VideoCapturerAndroid.create(cameraDeviceName, null);
+        if (videoCallEnabled) {
+            videoCapturer = createVideoCapturer();
             if (videoCapturer == null) {
                 Log.d(TAG, "Error while opening camera");
                 return;
@@ -344,7 +432,7 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
 
     void selectCameraPosition(final NBMCameraPosition position){
         if (!videoCallEnabled || videoCapturer == null || !hasCameraPosition(position)) {
-            Log.e(TAG, "Failed to switch camera. Video: " + videoCallEnabled + ". . Number of cameras: " + numberOfCameras);
+            Log.e(TAG, "Failed to switch camera. Video: " + videoCallEnabled);
             return;
         }
         if (position != currentCameraPosition) {
@@ -352,7 +440,8 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
                 @Override
                 public void run() {
                     Log.d(TAG, "Switch camera");
-                    videoCapturer.switchCamera(null);
+                    CameraVideoCapturer cameraVideoCapturer = (CameraVideoCapturer) videoCapturer;
+                    cameraVideoCapturer.switchCamera(null);
                     currentCameraPosition = position;
                 }
             });
@@ -361,14 +450,15 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
 
     void switchCamera(){
         if (!videoCallEnabled || videoCapturer == null) {
-            Log.e(TAG, "Failed to switch camera. Video: " + videoCallEnabled + ". . Number of cameras: " + numberOfCameras);
+            Log.e(TAG, "Failed to switch camera. Video: " + videoCallEnabled);
             return;
         }
         executor.execute(new Runnable() {
             @Override
             public void run() {
                 Log.d(TAG, "Switch camera");
-                videoCapturer.switchCamera(null);
+                CameraVideoCapturer cameraVideoCapturer = (CameraVideoCapturer) videoCapturer;
+                cameraVideoCapturer.switchCamera(null);
                 if (currentCameraPosition==NBMCameraPosition.BACK) {
                     currentCameraPosition = NBMCameraPosition.FRONT;
                 } else {
@@ -400,20 +490,21 @@ final class MediaResourceManager implements NBMWebRTCPeer.Observer {
     boolean hasCameraPosition(NBMMediaConfiguration.NBMCameraPosition position){
         boolean retMe = false;
 
-        String backName = CameraEnumerationAndroid.getNameOfBackFacingDevice();
-        String frontName = CameraEnumerationAndroid.getNameOfFrontFacingDevice();
-
-        if (position == NBMMediaConfiguration.NBMCameraPosition.ANY &&
-                (backName != null || frontName != null)){
-            retMe = true;
-        } else if (position == NBMMediaConfiguration.NBMCameraPosition.BACK &&
-                backName != null){
-            retMe = true;
-
-        } else if (position == NBMMediaConfiguration.NBMCameraPosition.FRONT &&
-                frontName != null){
-            retMe = true;
-        }
+//        String backName = CameraEnumerationAndroid.getNameOfBackFacingDevice();
+//        String frontName = CameraEnumerationAndroid.getNameOfFrontFacingDevice();
+//
+//
+//        if (position == NBMMediaConfiguration.NBMCameraPosition.ANY &&
+//                (backName != null || frontName != null)){
+//            retMe = true;
+//        } else if (position == NBMMediaConfiguration.NBMCameraPosition.BACK &&
+//                backName != null){
+//            retMe = true;
+//
+//        } else if (position == NBMMediaConfiguration.NBMCameraPosition.FRONT &&
+//                frontName != null){
+//            retMe = true;
+//        }
 
         return retMe;
     }

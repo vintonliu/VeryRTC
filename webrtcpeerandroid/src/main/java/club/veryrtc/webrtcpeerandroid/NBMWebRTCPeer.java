@@ -21,6 +21,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.webrtc.DataChannel;
+import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
@@ -28,7 +29,6 @@ import org.webrtc.PeerConnection.IceConnectionState;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
 import org.webrtc.VideoRenderer;
-import org.webrtc.VideoRendererGui;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -86,6 +86,7 @@ public class NBMWebRTCPeer{
     private VideoRenderer.Callbacks masterRenderer;
     private MediaStream activeMasterStream;
     private Observer observer;
+    private final EglBase rootEglBase;
     private PeerConnectionFactory peerConnectionFactory;
     private PeerConnectionResourceManager peerConnectionResourceManager;
     private MediaResourceManager mediaResourceManager;
@@ -224,6 +225,7 @@ public class NBMWebRTCPeer{
         public final String audioCodec;
         public final boolean noAudioProcessing;
         public final boolean cpuOveruseDetection;
+        public final boolean useCamera2;
 
         public NBMPeerConnectionParameters(
                 boolean videoCallEnabled,
@@ -237,7 +239,8 @@ public class NBMWebRTCPeer{
                 int audioStartBitrate,
                 String audioCodec,
                 boolean noAudioProcessing,
-                boolean cpuOveruseDetection) {
+                boolean cpuOveruseDetection,
+                boolean useCamera2) {
             this.videoCallEnabled = videoCallEnabled;
             this.loopback = loopback;
             this.videoWidth = videoWidth;
@@ -250,6 +253,7 @@ public class NBMWebRTCPeer{
             this.audioCodec = audioCodec;
             this.noAudioProcessing = noAudioProcessing;
             this.cpuOveruseDetection = cpuOveruseDetection;
+            this.useCamera2 = useCamera2;
         }
     }
 
@@ -273,6 +277,7 @@ public class NBMWebRTCPeer{
         this.activeMasterStream = null;
         this.config = config;
         executor = new LooperExecutor();
+        rootEglBase = EglBase.create();
 
         // Looper thread is started once in private ctor and is used for all
         // peer connection API calls to ensure new peer connection peerConnectionFactory is
@@ -280,9 +285,16 @@ public class NBMWebRTCPeer{
         executor.requestStart();
 
         peerConnectionParameters = new NBMWebRTCPeer.NBMPeerConnectionParameters(true, false,
-                         config.getReceiverVideoFormat().width, config.getReceiverVideoFormat().heigth,
-                        (int)config.getReceiverVideoFormat().frameRate, config.getVideoBandwidth(), config.getVideoCodec().toString(), true,
-                        config.getAudioBandwidth(), config.getAudioCodec().toString(),false, true);
+                                                        config.getReceiverVideoFormat().width, config.getReceiverVideoFormat().heigth,
+                                                        (int) config.getReceiverVideoFormat().frameRate,
+                                                        config.getVideoBandwidth(),
+                                                        config.getVideoCodec().toString(),
+                                                        true,
+                                                        config.getAudioBandwidth(),
+                                                        config.getAudioCodec().toString(),
+                                                        false,
+                                                        true,
+                                                        false);
 
         iceServers = new LinkedList<>();
         // Add Google's stun as a default ICE server
@@ -318,7 +330,11 @@ public class NBMWebRTCPeer{
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                signalingParameters = new NBMWebRTCPeer.SignalingParameters(iceServers, true, "", null, null);
+                signalingParameters = new NBMWebRTCPeer.SignalingParameters(iceServers,
+                                                                    true,
+                                                                    "",
+                                                                    null,
+                                                                    null);
                 createPeerConnectionFactoryInternal(context);
                 peerConnectionResourceManager = new PeerConnectionResourceManager(peerConnectionParameters, executor, peerConnectionFactory);
                 mediaResourceManager = new MediaResourceManager(peerConnectionParameters, executor, peerConnectionFactory);
@@ -401,7 +417,7 @@ public class NBMWebRTCPeer{
 
     public void addIceServer(String serverURI) {
         if (!initialized) {
-            iceServers.add(new PeerConnection.IceServer(serverURI));
+            iceServers.add(PeerConnection.IceServer.builder(serverURI).createIceServer());
         } else {
             throw new RuntimeException("Cannot set ICE servers after NBMWebRTCPeer has been initialized");
         }
@@ -532,7 +548,7 @@ public class NBMWebRTCPeer{
 
     private boolean startLocalMediaSync() {
         if (mediaResourceManager != null && mediaResourceManager.getLocalMediaStream() == null) {
-            mediaResourceManager.createLocalMediaStream(VideoRendererGui.getEglBaseContext(), localRender);
+            mediaResourceManager.createLocalMediaStream(rootEglBase.getEglBaseContext(), localRender);
             mediaResourceManager.startVideoSource();
             mediaResourceManager.selectCameraPosition(config.getCameraPosition());
             return true;

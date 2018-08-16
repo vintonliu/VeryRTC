@@ -24,6 +24,7 @@ import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
+import org.webrtc.RtpReceiver;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 
@@ -206,6 +207,16 @@ public class NBMPeerConnection implements PeerConnection.Observer, SdpObserver {
                 }
             }
         });
+    }
+
+    @Override
+    public void onIceCandidatesRemoved(IceCandidate[] candidates) {
+
+    }
+
+    @Override
+    public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams) {
+
     }
 
     @Override
