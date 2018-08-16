@@ -33,7 +33,7 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import fi.vtt.nubomedia.utilitiesandroid.LooperExecutor;
+import club.apprtc.utilitiesandroid.LooperExecutor;
 
 /**
  * A peer connection wrapper which is used by NBMWebRTCPeer to support multiple connectivity.

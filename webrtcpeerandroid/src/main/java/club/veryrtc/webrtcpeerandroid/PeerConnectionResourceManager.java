@@ -28,9 +28,9 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-import fi.vtt.nubomedia.utilitiesandroid.LooperExecutor;
-import fi.vtt.nubomedia.webrtcpeerandroid.NBMWebRTCPeer.NBMPeerConnectionParameters;
-import fi.vtt.nubomedia.webrtcpeerandroid.NBMWebRTCPeer.SignalingParameters;
+import club.apprtc.utilitiesandroid.LooperExecutor;
+import club.veryrtc.webrtcpeerandroid.NBMWebRTCPeer.NBMPeerConnectionParameters;
+import club.veryrtc.webrtcpeerandroid.NBMWebRTCPeer.SignalingParameters;
 
 /**
  * The class implements the management of PeerConnection instances.

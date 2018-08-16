@@ -33,7 +33,7 @@ import org.webrtc.VideoRendererGui;
 import java.util.LinkedList;
 import java.util.List;
 
-import fi.vtt.nubomedia.utilitiesandroid.LooperExecutor;
+import club.apprtc.utilitiesandroid.LooperExecutor;
 
 /**
  * Class implements the interface for managing WebRTC connections in harmonious manner with
