@@ -261,12 +261,12 @@ Sal * sal_init() {
 	static bool_t firsttime = TRUE;
 	Sal *sal;
 	if (firsttime) {
-		osip_trace_initialize_func(OSIP_INFO4, &_osip_trace_func);
+		osip_trace_initialize_func(OSIP_INFO3, &_osip_trace_func);
 		firsttime = FALSE;
 	}
 	
 	sal = ms_new0(Sal, 1);	
-	sal->keepalive_period = 30;
+	sal->keepalive_period = 30 * 1000;
 	sal->double_reg = FALSE;
 	sal->use_rports = TRUE;
 	sal->use_101 = FALSE;
@@ -1144,6 +1144,9 @@ static void inc_new_call(Sal *sal, eXosip_event_t *ev) {
 	op->base.call_id = ms_strdup(tmp);
 	osip_free(tmp);
 
+	op->tid = ev->tid;
+	op->cid = ev->cid;
+	op->did = ev->did;
 	set_network_origin(op, ev->request);
 	set_remote_contact(op, ev->request);
 	set_remote_ua(op, ev->request);
@@ -1162,8 +1165,14 @@ static void inc_new_call(Sal *sal, eXosip_event_t *ev) {
 		{
 			op->base.remote_sdp = ms_strdup(remote_sdp);
 		}
+	}	else {
+		op->sdp_offering = TRUE;
+
+		// need sdp for initialize invite
+		sal_call_decline(op, SalReasonMedia, NULL);
+		sal_op_release(op);
+		return;
 	}
-	else op->sdp_offering = TRUE;
 
 	from = osip_message_get_from(ev->request);
 	to = osip_message_get_to(ev->request);
@@ -1186,9 +1195,6 @@ static void inc_new_call(Sal *sal, eXosip_event_t *ev) {
 		osip_free(tmp);
 	}
 
-	op->tid = ev->tid;
-	op->cid = ev->cid;
-	op->did = ev->did;
 	sal_add_call(op->base.root, op);
 	sal->callbacks.call_received(op);
 }
@@ -2597,11 +2603,12 @@ void sal_use_tcp_tls_keepalive(Sal *ctx, bool_t enabled) {
 void sal_set_keepalive_period(Sal *ctx, unsigned int value) {
 	switch (ctx->transport) {
 	case SalTransportUDP:
-		ctx->keepalive_period = value;
+	case SalTransportDTLS:
+		ctx->keepalive_period = value * 1000;
 		break;
 	case SalTransportTCP:
 	case SalTransportTLS:
-		if (ctx->tcp_tls_keepalive) ctx->keepalive_period = value;
+		if (ctx->tcp_tls_keepalive) ctx->keepalive_period = value * 1000;
 		else ctx->keepalive_period = -1;
 		break;
 	default:
@@ -2611,7 +2618,7 @@ void sal_set_keepalive_period(Sal *ctx, unsigned int value) {
 }
 
 unsigned int sal_get_keepalive_period(Sal *ctx) {
-	return ctx->keepalive_period;
+	return ctx->keepalive_period / 1000;
 }
 
 const char * sal_address_get_port(const SalAddress *addr) {

@@ -97,22 +97,38 @@ int32_t SipClient::doRegister(const std::string &proxy, const std::string &displ
 	INITIALIZED_CHECK_VALUE(-1);
 
 	char identity[256] = { 0 };
+	uint32_t port = 5060;
+	LCSipTransports lc;
+	std::string tmpProxy = proxy;
 
 	if (proxy.empty() || username.empty() || authname.empty()	|| authpwd.empty())
 	{
 		return -1;
 	}
 
+	memset(&lc, 0x00, sizeof(LCSipTransports));
+	linphone_core_get_sip_transports(_ptrLc, &lc);
+
+	std::size_t found = proxy.find(':');
+	if (found == std::string::npos)
+	{
+		if (lc.transport == LcTransportDTLS || lc.transport == LcTransportTLS)
+		{
+			tmpProxy += ":5061";
+		}
+	}
+
 	if (!display.empty())
 	{
 		snprintf(identity, sizeof(identity), "\"%s\"<sip:%s@%s>", 
-					display.c_str(), username.c_str(), proxy.c_str());
+					display.c_str(), username.c_str(), tmpProxy.c_str());
 	}
 	else
 	{
-		snprintf(identity, sizeof(identity), "sip:%s@%s", username.c_str(), proxy.c_str());
+		snprintf(identity, sizeof(identity), "sip:%s@%s", username.c_str(), tmpProxy.c_str());
 	}
 
+	// Register for new user
 	LinphoneProxyConfig *proxy_cfg = nullptr;
 	LinphoneAuthInfo *auth_info = nullptr;
 
@@ -122,7 +138,7 @@ int32_t SipClient::doRegister(const std::string &proxy, const std::string &displ
 
 	proxy_cfg = linphone_proxy_config_new();
 	linphone_proxy_config_set_identity(proxy_cfg, identity);
-	linphone_proxy_config_set_server_addr(proxy_cfg, proxy.c_str());
+	linphone_proxy_config_set_server_addr(proxy_cfg, tmpProxy.c_str());
 	linphone_proxy_config_set_expires(proxy_cfg, 1800);
 	linphone_proxy_config_enable_register(proxy_cfg, TRUE);
 	linphone_core_add_proxy_config(_ptrLc, proxy_cfg);

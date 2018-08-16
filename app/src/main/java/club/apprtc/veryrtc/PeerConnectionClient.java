@@ -15,7 +15,6 @@ import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-import club.apprtc.veryrtc.AppRTCClient.SignalingParameters;
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.CameraVideoCapturer;
@@ -127,7 +126,7 @@ public class PeerConnectionClient {
   private Timer statsTimer;
   private VideoSink localRender;
   private List<VideoRenderer.Callbacks> remoteRenders;
-  private SignalingParameters signalingParameters;
+  private List<PeerConnection.IceServer> iceServers;
   private MediaConstraints pcConstraints;
   private int videoWidth;
   private int videoHeight;
@@ -140,7 +139,6 @@ public class PeerConnectionClient {
   // remote descriptions are set. Similarly local ICE candidates are sent to
   // remote peer after both local and remote description are set.
   private LinkedList<IceCandidate> queuedRemoteCandidates;
-  private List<PeerConnection.IceServer> iceServers;
   private PeerConnectionEvents events;
   private boolean isInitiator;
   private SessionDescription localSdp; // either offer or answer SDP
@@ -186,6 +184,7 @@ public class PeerConnectionClient {
     public final boolean videoCallEnabled;
     public final boolean loopback;
     public final boolean tracing;
+    public final Logging.Severity severity;
     public final int videoWidth;
     public final int videoHeight;
     public final int videoFps;
@@ -205,19 +204,19 @@ public class PeerConnectionClient {
     public final boolean disableWebRtcAGCAndHPF;
     private final DataChannelParameters dataChannelParameters;
 
-    public PeerConnectionParameters(boolean videoCallEnabled, boolean loopback, boolean tracing,
+    public PeerConnectionParameters(boolean videoCallEnabled, boolean loopback, boolean tracing, Logging.Severity severity,
         int videoWidth, int videoHeight, int videoFps, int videoMaxBitrate, String videoCodec,
         boolean videoCodecHwAcceleration, boolean videoFlexfecEnabled, int audioStartBitrate,
         String audioCodec, boolean noAudioProcessing, boolean aecDump, boolean useOpenSLES,
         boolean disableBuiltInAEC, boolean disableBuiltInAGC, boolean disableBuiltInNS,
         boolean enableLevelControl, boolean disableWebRtcAGCAndHPF) {
-      this(videoCallEnabled, loopback, tracing, videoWidth, videoHeight, videoFps, videoMaxBitrate,
+      this(videoCallEnabled, loopback, tracing, severity, videoWidth, videoHeight, videoFps, videoMaxBitrate,
           videoCodec, videoCodecHwAcceleration, videoFlexfecEnabled, audioStartBitrate, audioCodec,
           noAudioProcessing, aecDump, useOpenSLES, disableBuiltInAEC, disableBuiltInAGC,
           disableBuiltInNS, enableLevelControl, disableWebRtcAGCAndHPF, null);
     }
 
-    public PeerConnectionParameters(boolean videoCallEnabled, boolean loopback, boolean tracing,
+    public PeerConnectionParameters(boolean videoCallEnabled, boolean loopback, boolean tracing, Logging.Severity severity,
         int videoWidth, int videoHeight, int videoFps, int videoMaxBitrate, String videoCodec,
         boolean videoCodecHwAcceleration, boolean videoFlexfecEnabled, int audioStartBitrate,
         String audioCodec, boolean noAudioProcessing, boolean aecDump, boolean useOpenSLES,
@@ -227,6 +226,7 @@ public class PeerConnectionClient {
       this.videoCallEnabled = videoCallEnabled;
       this.loopback = loopback;
       this.tracing = tracing;
+      this.severity = severity;
       this.videoWidth = videoWidth;
       this.videoHeight = videoHeight;
       this.videoFps = videoFps;
@@ -355,7 +355,6 @@ public class PeerConnectionClient {
     this.localRender = localRender;
     this.remoteRenders = remoteRenders;
     this.videoCapturer = videoCapturer;
-    this.signalingParameters = signalingParameters;
     this.iceServers = iceServers;
     executor.execute(new Runnable() {
       @Override
@@ -438,6 +437,8 @@ public class PeerConnectionClient {
           Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator
           + "webrtc-trace.txt");
     }
+
+    Logging.enableLogToDebugOutput(peerConnectionParameters.severity);
 
     // Check if ISAC is used by default.
     preferIsac = peerConnectionParameters.audioCodec != null
@@ -636,7 +637,7 @@ public class PeerConnectionClient {
 
     // Set INFO libjingle logging.
     // NOTE: this _must_ happen while |factory| is alive!
-    Logging.enableLogToDebugOutput(Logging.Severity.LS_INFO);
+//    Logging.enableLogToDebugOutput(Logging.Severity.LS_INFO);
 
     mediaStream = factory.createLocalMediaStream("ARDAMS");
     if (videoCallEnabled) {

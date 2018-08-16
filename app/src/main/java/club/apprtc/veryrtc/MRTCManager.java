@@ -9,10 +9,10 @@ import android.os.HandlerThread;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import org.webrtc.Camera1Enumerator;
 import org.webrtc.Camera2Enumerator;
+import org.webrtc.CameraEnumerationAndroid;
 import org.webrtc.CameraEnumerator;
 import org.webrtc.FileVideoCapturer;
 import org.webrtc.IceCandidate;
@@ -101,7 +101,6 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     private SurfaceViewRenderer fullscreenRenderer;
     private VideoFileRenderer videoFileRenderer;
     private final List<VideoRenderer.Callbacks> remoteRenderers = new ArrayList<VideoRenderer.Callbacks>();
-    private Toast logToast;
     private PeerConnectionClient.PeerConnectionParameters peerConnectionParameters;
     private boolean iceConnected = false;
     private boolean isError;
@@ -117,7 +116,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     private Context mContext;
     private final Vector<OnClientListener> listeners;
     private MSettings mSettings;
-    private boolean isInitialized = false;
+    private boolean isInitialized;
     private final Handler workHandler;
     private final Handler mainHandler;
 
@@ -146,7 +145,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     public void close() {
         isInitialized = false;
 
-        disconnect();
+        disconnect(MRTCReason.MRTC_REASON_USER_HANGUP);
 
         if (sipClientAPI != null) {
             sipClientAPI.doDispose();
@@ -244,19 +243,35 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     }
 
     public boolean doStartCall(final String toUser, final boolean videoCall) {
+        if (!sipClientAPI.isRegistered()) {
+            Log.w(TAG, "Couldn't start call when un-registered.");
+            return false;
+        }
+
         if (videoCall && (pipRenderer == null || fullscreenRenderer == null)) {
-            Logging.e(TAG, "Video render view is null.");
+            Log.e(TAG, "Couldn't start video call since render view not set.");
             return false;
         }
 
         if (sipClientAPI.isInCall()) {
-            Logging.w(TAG, "Already have in call now");
+            Log.e(TAG, "Couldn't repeat start call.");
             return false;
+        }
+
+        if (peerConnectionClient != null) {
+            peerConnectionClient.close();
+            peerConnectionClient = null;
+        }
+
+        if (audioManager != null) {
+            audioManager.stop();
+            audioManager = null;
         }
 
         mSettings.update(mSettings.keyprefVideoCall, videoCall);
 
         callStartedTimeMs = System.currentTimeMillis();
+        isError = false;
 
         createAudioManager();
         createPeerConnectionFactory();
@@ -264,7 +279,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
 
         if (peerConnectionClient == null) {
             Logging.e(TAG, "Creating PeerConnection failure.");
-            disconnect();
+            disconnect(MRTCReason.MRTC_REASON_USER_HANGUP);
             return false;
         }
 
@@ -286,11 +301,6 @@ class MRTCManager implements SipClientAPI.SipClientListener,
             return false;
         }
 
-        if (isError) {
-            Log.w(TAG, "Call is connected in closed or error state");
-            return false;
-        }
-
         if (!sipClientAPI.isInCall()) {
             return false;
         }
@@ -299,6 +309,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
             videoCall = false;
         }
         mSettings.update(mSettings.keyprefVideoCall, videoCall);
+        isError = false;
 
         createAudioManager();
         createPeerConnectionFactory();
@@ -306,7 +317,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
 
         if (peerConnectionClient == null) {
             Logging.w(TAG, "Creating PeerConnection failure.");
-            disconnect();
+            disconnect(MRTCReason.MRTC_REASON_USER_HANGUP);
             return false;
         }
 
@@ -323,8 +334,9 @@ class MRTCManager implements SipClientAPI.SipClientListener,
 
     public boolean doHangup() {
         if (sipClientAPI != null && sipClientAPI.isInCall()) {
-            sipClientAPI.doHangup();
+            sipClientAPI.doHangup(MRTCReason.MRTC_REASON_USER_HANGUP);
         }
+
         return true;
     }
 
@@ -465,6 +477,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
                 mpcParameters.videoCallEnable,
                 mpcParameters.loopback,
                 mpcParameters.tracing,
+                Logging.Severity.LS_INFO,
                 mpcParameters.videoWidth,
                 mpcParameters.videoHeight,
                 mpcParameters.videoFps,
@@ -547,6 +560,16 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     private VideoCapturer createCameraCapturer(CameraEnumerator enumerator) {
         final String[] deviceNames = enumerator.getDeviceNames();
 
+        for (String deviceName : deviceNames) {
+            Logging.d(TAG, deviceName);
+            final List<CameraEnumerationAndroid.CaptureFormat> formatList =
+                    enumerator.getSupportedFormats(deviceName);
+            for (CameraEnumerationAndroid.CaptureFormat format:
+                 formatList) {
+                Logging.d(TAG, format.toString());
+            }
+        }
+
         // First, try to find front facing camera
         Logging.d(TAG, "Looking for front facing cameras.");
         for (String deviceName : deviceNames) {
@@ -627,9 +650,16 @@ class MRTCManager implements SipClientAPI.SipClientListener,
         workHandler.post(new Runnable() {
             @Override
             public void run() {
+                MRTCReason reason = MRTCReason.MRTC_REASON_UNKNOWN;
+                if (description.toUpperCase().contains("SDP")) {
+                    reason = MRTCReason.MRTC_REASON_SDP_FAILURE;
+                } else if (description.toUpperCase().contains("ICE")) {
+                    reason = MRTCReason.MRTC_REASON_ICE_FAILURE;
+                }
+
                 if (!isError) {
                     isError = true;
-                    disconnect();
+                    disconnect(reason);
                 }
 
                 synchronized (listeners) {
@@ -643,12 +673,12 @@ class MRTCManager implements SipClientAPI.SipClientListener,
         Logging.e(TAG, description);
     }
 
-    private void disconnect() {
+    private void disconnect(MRTCReason reason) {
         remoteProxyRenderer.setTarget(null);
         localProxyVideoSink.setTarget(null);
 
         if (sipClientAPI != null && sipClientAPI.isInCall()) {
-            sipClientAPI.doHangup();
+            sipClientAPI.doHangup(reason);
         }
         if (pipRenderer != null) {
             pipRenderer.release();
@@ -681,11 +711,6 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     // Log |msg| and Toast about it.
     private void logAndToast(String msg) {
         Log.d(TAG, msg);
-        if (logToast != null) {
-            logToast.cancel();
-        }
-        logToast = Toast.makeText(mContext, msg, Toast.LENGTH_LONG);
-        logToast.show();
     }
 
     private Map<String, String> getReportMap(StatsReport report) {
@@ -696,7 +721,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
         return reportMap;
     }
 
-    public void updateEncoderStatistics(final StatsReport[] reports) {
+    private void updateEncoderStatistics(final StatsReport[] reports) {
         if (!mSettings.getMpcParameters().displayHudEnable) {
             return;
         }
@@ -798,14 +823,19 @@ class MRTCManager implements SipClientAPI.SipClientListener,
         workHandler.post(new Runnable() {
             @Override
             public void run() {
+                boolean res;
                 if (sipClientAPI.isInitiator()) {
-                    sipClientAPI.doStartCall(sdp);
+                    res = sipClientAPI.doStartCall(sdp);
                 } else {
-                    sipClientAPI.doAnswer(sdp);
+                    res = sipClientAPI.doAnswer(sdp);
                 }
 
-                if (peerConnectionParameters.videoMaxBitrate > 0) {
-                    peerConnectionClient.setVideoMaxBitrate(peerConnectionParameters.videoMaxBitrate);
+                if (res) {
+                    if (peerConnectionParameters.videoMaxBitrate > 0) {
+                        peerConnectionClient.setVideoMaxBitrate(peerConnectionParameters.videoMaxBitrate);
+                    }
+                } else {
+                    disconnect(MRTCReason.MRTC_REASON_USER_HANGUP);
                 }
             }
         });
@@ -823,7 +853,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
 
     @Override
     public void onIceCandidatesRemoved(final IceCandidate[] candidates) {
-        Logging.d(TAG, "onIceCandidatesRemoved");
+        Logging.d(TAG, "onIceCandidatesRemoved candidates = " + candidates.toString());
     }
 
     @Override
@@ -845,7 +875,10 @@ class MRTCManager implements SipClientAPI.SipClientListener,
             @Override
             public void run() {
                 iceConnected = false;
-                disconnect();
+                if (!isError) {
+                    isError = true;
+                    disconnect(MRTCReason.MRTC_REASON_ICE_FAILURE);
+                }
             }
         });
     }
@@ -880,7 +913,7 @@ class MRTCManager implements SipClientAPI.SipClientListener,
             @Override
             public void run() {
                 if (!registered) {
-                    disconnect();
+                    disconnect(MRTCReason.MRTC_REASON_USER_HANGUP);
                 }
 
                 synchronized (listeners) {
@@ -893,15 +926,15 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     }
 
     @Override
-    public void onRegisterFailure(final SipClientAPI.SipReason reason) {
-        Logging.d(TAG, "onRegisterFailure reason: " + reason);
+    public void onRegisterFailure(final MRTCReason reason) {
+        Logging.d(TAG, "onRegisterFailure reason: " + reason.toString());
         workHandler.post(new Runnable() {
             @Override
             public void run() {
-                disconnect();
+                disconnect(MRTCReason.MRTC_REASON_USER_HANGUP);
                 synchronized (listeners) {
                     for (OnClientListener listener : listeners) {
-                        listener.onLoginFailure(reason.toString());
+                        listener.onLoginFailure(reason);
                     }
                 }
             }
@@ -972,16 +1005,18 @@ class MRTCManager implements SipClientAPI.SipClientListener,
     }
 
     @Override
-    public void onCallEnded(final SipClientAPI.SipReason reason) {
-        Logging.d(TAG, "onCallEnded(" + reason + ")");
+    public void onCallEnded(final MRTCReason reason) {
+        Logging.d(TAG, "onCallEnded(" + reason.toString() + ")");
         workHandler.post(new Runnable() {
             @Override
             public void run() {
-                disconnect();
+                disconnect(MRTCReason.MRTC_REASON_NONE);
 
-                synchronized (listeners) {
-                    for (OnClientListener listener : listeners) {
-                        listener.onCallEnded(reason.toString());
+                if (!isError) {
+                    synchronized (listeners) {
+                        for (OnClientListener listener : listeners) {
+                            listener.onCallEnded(reason);
+                        }
                     }
                 }
             }

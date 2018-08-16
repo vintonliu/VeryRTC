@@ -336,7 +336,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     }
     peerConnectionParameters =
         new PeerConnectionParameters(intent.getBooleanExtra(EXTRA_VIDEO_CALL, true), loopback,
-            tracing, videoWidth, videoHeight, intent.getIntExtra(EXTRA_VIDEO_FPS, 0),
+            tracing, Logging.Severity.LS_INFO, videoWidth, videoHeight, intent.getIntExtra(EXTRA_VIDEO_FPS, 0),
             intent.getIntExtra(EXTRA_VIDEO_BITRATE, 0), intent.getStringExtra(EXTRA_VIDEOCODEC),
             intent.getBooleanExtra(EXTRA_HWCODEC_ENABLED, true),
             intent.getBooleanExtra(EXTRA_FLEXFEC_ENABLED, false),

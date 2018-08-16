@@ -355,17 +355,17 @@ public class LoginActivity extends AppCompatActivity implements OnClientListener
     }
 
     @Override
-    public void onLoginFailure(final String description) {
+    public void onLoginFailure(final MRTCReason reason) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
 //                tvLoginTip.setVisibility(View.GONE);
-                tvLoginTip.setText(description);
+                tvLoginTip.setText(reason.toString());
                 llLogonPanel.setVisibility(View.GONE);
                 llLoginPanel.setVisibility(View.VISIBLE);
 
                 isRegistered = false;
-                Toast.makeText(mContext, "Login failed with " + description, Toast.LENGTH_LONG).show();
+                Toast.makeText(mContext, "Login failed with " + reason.toString(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -393,11 +393,11 @@ public class LoginActivity extends AppCompatActivity implements OnClientListener
     }
 
     @Override
-    public void onCallEnded(final String description) {
+    public void onCallEnded(final MRTCReason reason) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(mContext, description, Toast.LENGTH_LONG).show();
+                Toast.makeText(mContext, reason.toString(), Toast.LENGTH_LONG).show();
             }
         });
     }

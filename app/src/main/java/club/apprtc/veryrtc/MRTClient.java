@@ -16,9 +16,9 @@ public class MRTClient {
     public final static String keyprefResolution = "resolution_key";
     /* Video capture framerate, valid value: 15, 30 */
     public final static String keyprefFps = "fps_key";
-    /* @deprecated */
+    @Deprecated
     private final static String keyprefCaptureQualitySlider = "capturequalityslider_key";
-    /* @deprecated */
+    @Deprecated
     private final static String keyprefMaxVideoBitrateType = "maxvideobitrate_key";
     /* Video encoder max bitrate */
     public final static String keyprefMaxVideoBitrateValue = "maxvideobitratevalue_key";
@@ -30,10 +30,10 @@ public class MRTClient {
     public final static String keyprefCaptureToTexture = "capturetotexture_key";
     /* Disable/enable Codec-agnostic Flexible FEC for video call */
     public final static String keyprefFlexfec = "flexfec_key";
-    /* @deprecated */
+    @Deprecated
     private final static String keyprefStartAudioBitrateType = "startaudiobitrate_key";
     /* Audio start bitrate */
-    public final static String keyprefStartAudioBitrateValue = "startaudiobitratevalue_key";
+    private final static String keyprefStartAudioBitrateValue = "startaudiobitratevalue_mkey";
     /* Audio codec, valid value: OPUS, ISAC */
     public final static String keyPrefAudioCodec = "audiocodec_key";
     /* Disable/enable audio processing */
@@ -413,6 +413,7 @@ public class MRTClient {
 
     /**
      * Set sip transport layer protocol and local listen port
+     * invoke it before login and start call
      * @param transport transport protocol, see @enum MSipTransport for detail
      * @param port sip local listen port, >= 0, set 0 to use random port
      * @return operate success or not
@@ -422,7 +423,7 @@ public class MRTClient {
             return false;
         }
 
-        if (port < 0 && port >= 65535) {
+        if (port < 0 || port >= 65535) {
             return false;
         }
 

@@ -14,6 +14,7 @@ enum SipReason
 	SipReasonNotAnswer,
 	SipReasonBusy,
 	SipReasonTemporarilyUnavailable,
+	SipReasonMediaIncompatible,
 	SipReasonCancel,
 	SipReasonRequestTimeout,
 	SipReasonServerInternalServer,

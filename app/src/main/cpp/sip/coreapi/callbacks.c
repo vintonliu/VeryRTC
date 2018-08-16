@@ -436,8 +436,11 @@ static void call_failure(SalOp *op, SalError error, SalReason sr, const char *de
 		linphone_call_set_state(call,LinphoneCallError,"User is busy.");
 	} else if (sr == SalReasonTemporarilyUnavailable)	{
 		call->reason = LinphoneReasonTemporarilyUnavailable;
-		linphone_call_set_state(call, LinphoneCallError, msg480);
-	} else {
+		linphone_call_set_state(call, LinphoneCallError, msg);
+	}	else if (sr == SalReasonMedia) {
+		call->reason = LinphoneReasonMediaIncompatible;
+		linphone_call_set_state(call, LinphoneCallError, msg);
+	}	else {
 		if (code == 408) {
 			if ((linphone_call_get_state(call) == LinphoneCallOutgoingRinging)
 				|| (linphone_call_get_state(call) == LinphoneCallOutgoingEarlyMedia)) {

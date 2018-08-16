@@ -498,13 +498,13 @@ static void sip_config_read(LinphoneCore *lc)
 	lc->sip_conf.register_only_when_upnp_is_ok = FALSE;
 	lc->sip_conf.ping_with_options = FALSE;
 	lc->sip_conf.auto_net_state_mon = FALSE;
-	lc->sip_conf.keepalive_period = 60;
-	lc->sip_conf.tcp_tls_keepalive = 0;
+	lc->sip_conf.keepalive_period = 30;
+	lc->sip_conf.tcp_tls_keepalive = 1;
 	
 	memset(&tr, 0x00, sizeof(tr));
 	/* default udp transport */
-	//tr.transport = LcTransportUDP;
-	tr.transport = LcTransportTLS;
+	tr.transport = LcTransportUDP;
+	//tr.transport = LcTransportTLS;
 	tr.udp_port = 5060;
 	tr.tcp_port = 5060;
 	tr.tls_port = 5061;

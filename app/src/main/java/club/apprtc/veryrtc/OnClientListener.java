@@ -11,7 +11,7 @@ public interface OnClientListener {
      * Callback fired once user login or keep alive failure
      * @param description detail description
      */
-    void onLoginFailure(final String description);
+    void onLoginFailure(final MRTCReason reason);
 
     /**
      * Callback fired once an outgoing call received remote peer ringing message
@@ -35,7 +35,7 @@ public interface OnClientListener {
      * Callback fired once the call terminate
      * @param description detail description
      */
-    void onCallEnded(final String description);
+    void onCallEnded(final MRTCReason reason);
 
     /**
      * Callback fired once call statics report ready

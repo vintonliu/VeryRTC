@@ -254,6 +254,7 @@ enum _LinphoneReason{
 	LinphoneReasonNotAnswered, /**<The call was not answered in time*/
 	LinphoneReasonBusy, /**<Phone line was busy */
 	LinphoneReasonTemporarilyUnavailable, /**<Temporarily unavailable> */
+	LinphoneReasonMediaIncompatible,	/**<Incompatible media parameters>*/
 	LinphoneReasonCancel,	/**<User cancel> */
 	LinphoneReasonRequestTimeout,   /**<Request failure, like 408(Request timeout)>*/
 	LinphoneReasonServerInternalServer, /**<status code is 5xx>*/

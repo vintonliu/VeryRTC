@@ -211,7 +211,7 @@ static void __ortp_logv_out(OrtpLogLevel lev, const char *fmt, va_list args){
 		LOGGING(level, "%s", tmpBuf);
 #endif
 
-		fprintf(__log_file, tmpBuf);
+		fprintf(__log_file, "%s", tmpBuf);
 		fflush(__log_file);
 		ortp_free(msg);
 		msg = NULL;

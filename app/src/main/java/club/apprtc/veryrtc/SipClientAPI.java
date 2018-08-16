@@ -58,49 +58,42 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
      *
      */
     private class SessionParameters {
-        public boolean isInitiator;
+        boolean isInitiator;
+        boolean isLocalHangup;
         CallState state;
-        public String fromUser;
-        public String toUser;
-        public SessionDescription offerSdp;
-        public SessionDescription answerSdp;
-        public List<IceCandidate> localCandidates;
-        public List<IceCandidate> remoteCandidates;
+        String fromUser;
+        String toUser;
+        SessionDescription offerSdp;
+        SessionDescription answerSdp;
+        List<IceCandidate> localCandidates;
+        List<IceCandidate> remoteCandidates;
+        MRTCReason reason;
 
         SessionParameters() {
             state = CallState.CALL_IDLE;
             isInitiator = false;
+            reason = MRTCReason.MRTC_REASON_NONE;
         }
     }
 
     public enum SipReason {
-        /* Mapped Jni reason, must be same order with SipReason in SignalingEvent.h */
-        SIP_REASON_NONE("成功"),
-        SIP_REASON_NO_RESPONSE("请求无响应"),
-        SIP_REASON_BAD_CREDENTIALS("鉴权错误"),
-        SIP_REASON_DECLINED("对方拒接"),
-        SIP_REASON_NOT_FOUND("用户不存在或不在线"),
-        SIP_REASON_NO_ANSWER("对方未接"),
-        SIP_REASON_BUSY("对方忙"),
-        SIP_REASON_TEMPORARILY_UNAVAILABLE("暂不可用"),
-        SIP_REASON_CANCEL("呼叫取消"),
-        SIP_REASON_REQUEST_TIMEOUT("请求超时"),
-        SIP_REASON_SERVER_INTERNAL_ERROR("服务器内部错误"),
-        SIP_REASON_UNKNOWN("未知错误"),
+        // Keep in sync with MSip/SignalingEvent.h!
+        SIP_REASON_NONE,
+        SIP_REASON_NO_RESPONSE,
+        SIP_REASON_BAD_CREDENTIALS,
+        SIP_REASON_DECLINED,
+        SIP_REASON_NOT_FOUND,
+        SIP_REASON_NO_ANSWER,
+        SIP_REASON_BUSY,
+        SIP_REASON_TEMPORARILY_UNAVAILABLE,
+        SIP_REASON_MEDIA_INCOMPATIBLE,
+        SIP_REASON_CANCEL,
+        SIP_REASON_REQUEST_TIMEOUT,
+        SIP_REASON_SERVER_INTERNAL_ERROR,
+        SIP_REASON_UNKNOWN,
 
-        /* Custom reason in Java layer */
-        SIP_REASON_MEDIA_NOT_ACCEPT("媒体错误"),
-        ;
-
-        private String desc;
-        SipReason(String desc) {
-            this.desc = desc;
-        }
-
-        @Override
-        public String toString() {
-            return desc;
-        }
+        SIP_REASON_USER_HANGUP,
+        SIP_REASON_PEER_HANGUP,
     }
 
     private final static String TAG = "SipClientAPI";
@@ -113,7 +106,6 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
     private SipChannelClient sipclient;
     private final Vector<SipClientListener> listeners;
     private final Handler handler;
-//    private boolean isInitiator = false;
     private SignalingParameters signalingParameters;
     private SessionParameters sessionParameters;
 
@@ -152,6 +144,10 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
         });
 
         listeners.clear();
+    }
+
+    public boolean isRegistered() {
+        return signalingParameters.isRegistered();
     }
 
     public boolean isInitiator() {
@@ -237,6 +233,7 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
     public boolean doStartCall(final SessionDescription local_sdp) {
         if (!(signalingParameters.isRegistered) || local_sdp == null) {
+            Log.e(TAG,"doStartCall cancel since un-register");
             return false;
         }
         queuedCallerCandidates = new LinkedList<IceCandidate>();
@@ -271,11 +268,13 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
         return true;
     }
 
-    public boolean doHangup() {
+    public boolean doHangup(MRTCReason reason) {
         if (sessionParameters == null) {
             return true;
         }
 
+        sessionParameters.isLocalHangup = true;
+        sessionParameters.reason = reason;
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -360,7 +359,7 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
         signalingParameters.isRegistered = false;
         synchronized (listeners) {
             for (SipClientListener listener : listeners) {
-                listener.onRegisterFailure(SipReason.values()[reason]);
+                listener.onRegisterFailure(convertSipReason(SipReason.values()[reason]));
             }
         }
     }
@@ -421,7 +420,7 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
             for (SipClientListener listener: listeners) {
                 if (isInitiator() && remote_sdp.isEmpty()) {
                     // We need remote sdp as an Initiator
-                    listener.onCallEnded(SipReason.SIP_REASON_MEDIA_NOT_ACCEPT);
+                    listener.onCallEnded(MRTCReason.MRTC_REASON_MEDIA_NOT_ACCEPT);
                 } else {
                     if (isInitiator()) {
                         String type = "ANSWER";
@@ -449,7 +448,17 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
 
         synchronized (listeners) {
             for (SipClientListener listener: listeners) {
-                listener.onCallEnded(SipReason.values()[reason]);
+                if (sessionParameters.reason == MRTCReason.MRTC_REASON_NONE) {
+                    SipReason sipReason = SipReason.values()[reason];
+                    if (sipReason == SipReason.SIP_REASON_NONE &&
+                        !sessionParameters.isLocalHangup) {
+                        listener.onCallEnded(MRTCReason.MRTC_REASON_PEER_HANGUP);
+                    } else {
+                        listener.onCallEnded(convertSipReason(sipReason));
+                    }
+                } else {
+                    listener.onCallEnded(sessionParameters.reason);
+                }
             }
         }
     }
@@ -519,13 +528,45 @@ class SipClientAPI implements SipChannelClient.SipNativeObserver {
         });
     }
 
+    private MRTCReason convertSipReason(SipClientAPI.SipReason reason) {
+        switch (reason) {
+            case SIP_REASON_NONE:
+                return MRTCReason.MRTC_REASON_NONE;
+            case SIP_REASON_NO_RESPONSE:
+                return MRTCReason.MRTC_REASON_NO_RESPONSE;
+            case SIP_REASON_BAD_CREDENTIALS:
+                return MRTCReason.MRTC_REASON_BAD_CREDENTIALS;
+            case SIP_REASON_DECLINED:
+                return MRTCReason.MRTC_REASON_PEER_DECLINED;
+            case SIP_REASON_NOT_FOUND:
+                return MRTCReason.MRTC_REASON_NOT_FOUND;
+            case SIP_REASON_NO_ANSWER:
+                return MRTCReason.MRTC_REASON_PEER_NO_ANSWER;
+            case SIP_REASON_BUSY:
+                return MRTCReason.MRTC_REASON_PEER_BUSY;
+            case SIP_REASON_TEMPORARILY_UNAVAILABLE:
+                return MRTCReason.MRTC_REASON_TEMPORARILY_UNAVAILABLE;
+            case SIP_REASON_MEDIA_INCOMPATIBLE:
+                return MRTCReason.MRTC_REASON_MEDIA_NOT_ACCEPT;
+            case SIP_REASON_CANCEL:
+                return MRTCReason.MRTC_REASON_USER_CANCEL;
+            case SIP_REASON_REQUEST_TIMEOUT:
+                return MRTCReason.MRTC_REASON_REQUEST_TIMEOUT;
+            case SIP_REASON_SERVER_INTERNAL_ERROR:
+                return MRTCReason.MRTC_REASON_SERVER_INTERNAL_ERROR;
+
+            default:
+                return MRTCReason.MRTC_REASON_UNKNOWN;
+        }
+    }
+
     interface SipClientListener {
         void onRegistered(final boolean registered);
-        void onRegisterFailure(final SipReason reason);
+        void onRegisterFailure(final MRTCReason reason);
         void onCallRinging(final SessionDescription remoteSdp);
         void onCallIncoming(final String fromUser, final SessionDescription remoteSdp);
         void onCallConnected(final SessionDescription remoteSdp);
-        void onCallEnded(final SipReason reason);
+        void onCallEnded(final MRTCReason reason);
         void onRemoteIceCandidate(final IceCandidate candidate);
     }
 }

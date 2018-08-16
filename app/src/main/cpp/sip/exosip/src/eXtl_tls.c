@@ -3353,7 +3353,7 @@ tls_tl_send_message (struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 
   ptr = message;
   while (length > 0) {
-#if TARGET_OS_IPHONE            /* avoid ssl error on large message */
+#if 0//TARGET_OS_IPHONE            /* avoid ssl error on large message */
     int max = (length > 500) ? 500 : length;
 
     i = SSL_write (ssl, (const void *) ptr, (int) max);
@@ -3414,6 +3414,8 @@ tls_tl_keepalive (struct eXosip_t *excontext)
             if (i == SSL_ERROR_WANT_READ || i == SSL_ERROR_WANT_WRITE)
               continue;
             print_ssl_error (i);
+					} else {
+						OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL, "eXosip: Keep Alive sent on TLS!\n"));
           }
           break;
         }

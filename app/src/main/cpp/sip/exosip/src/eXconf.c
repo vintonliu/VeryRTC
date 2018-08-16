@@ -748,7 +748,7 @@ eXosip_init (struct eXosip_t *excontext)
   excontext->enable_dns_cache = 1;
   excontext->ka_interval = 17000;
   snprintf(excontext->ka_crlf, sizeof(excontext->ka_crlf), "\r\n\r\n");
-  excontext->ka_options = 0;
+	excontext->ka_options = 1;
   excontext->autoanswer_bye = 1;
   excontext->auto_masquerade_contact = 1;
   excontext->masquerade_via=0;
@@ -795,10 +795,10 @@ eXosip_execute (struct eXosip_t *excontext)
       eXosip_unlock (excontext);
       
       if (lower_tv.tv_sec == 1) {
-	OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "eXosip: Reseting timer to 1s before waking up!\n"));
+				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO4, NULL, "eXosip: Reseting timer to 1s before waking up!\n"));
       }
       else {
-	OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "eXosip: Reseting timer to 10s before waking up!\n"));
+				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO4, NULL, "eXosip: Reseting timer to 10s before waking up!\n"));
       }
     }
     else {
@@ -1227,6 +1227,19 @@ _eXosip_keep_alive (struct eXosip_t *excontext)
   osip_gettimeofday (&excontext->ka_timer, NULL);
   add_gettimeofday (&excontext->ka_timer, excontext->ka_interval);
 
+#ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
+	if (excontext->ka_options != 0) {
+		eXosip_reg_t *jr;
+		osip_message_t *options = NULL;
+		for (jr = excontext->j_reg; jr != NULL; jr = jr->next) {
+			eXosip_options_build_request(excontext, &options, jr->r_registrar, jr->r_aor, NULL);
+			if (options) {
+				eXosip_options_send_request(excontext, options);
+			}
+		}
+		return;
+	}
+#endif
   if (excontext->eXtl_transport.tl_keepalive != NULL)
     excontext->eXtl_transport.tl_keepalive (excontext);
 }

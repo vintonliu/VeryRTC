@@ -1,1 +1,1 @@
-include ':app'
+include ':app', ':jsonrpc-ws-android', ':utilitiesandroid', ':webrtcpeerandroid', ':libjingle'

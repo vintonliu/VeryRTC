@@ -347,8 +347,8 @@ public class SipCallActivity extends Activity implements OnClientListener,
     }
 
     @Override
-    public void onLoginFailure(final String description) {
-        logAndToast(description);
+    public void onLoginFailure(final MRTCReason reason) {
+        logAndToast(reason.toString());
 
         disconnect();
         callState = CallState.CALL_IDLE;
@@ -390,11 +390,11 @@ public class SipCallActivity extends Activity implements OnClientListener,
     }
 
     @Override
-    public void onCallEnded(final String description) {
+    public void onCallEnded(final MRTCReason reason) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                logAndToast(description);
+                logAndToast(reason.toString());
                 callState = CallState.CALL_IDLE;
                 disconnect();
             }
