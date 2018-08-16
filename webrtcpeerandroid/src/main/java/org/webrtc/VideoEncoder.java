@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package webrtc;
+package org.webrtc;
 
 /**
  * Interface for a video encoder that can be used with WebRTC. All calls will be made on the

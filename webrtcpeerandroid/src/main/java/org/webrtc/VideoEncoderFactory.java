@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package webrtc;
+package org.webrtc;
 
 /** Factory for creating VideoEncoders. */
 public interface VideoEncoderFactory {

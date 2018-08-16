@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package webrtc;
+package org.webrtc;
 
 /** An implementation of CapturerObserver that forwards all calls from Java to the C layer. */
 class AndroidVideoTrackSourceObserver implements VideoCapturer.CapturerObserver {

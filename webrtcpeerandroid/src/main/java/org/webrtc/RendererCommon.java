@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package webrtc;
+package org.webrtc;
 
 import android.graphics.Point;
 import android.opengl.Matrix;

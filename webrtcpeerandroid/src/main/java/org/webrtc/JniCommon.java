@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package webrtc;
+package org.webrtc;
 
 /** Class with static JNI helper functions that are used in many places. */
 class JniCommon {

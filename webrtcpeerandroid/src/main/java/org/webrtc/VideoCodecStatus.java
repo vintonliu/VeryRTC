@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package webrtc;
+package org.webrtc;
 
 /**
  * Status codes reported by video encoding/decoding components. This should be kept in sync with

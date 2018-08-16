@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-package webrtc;
+package org.webrtc;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -174,7 +174,7 @@ class EglBase10 extends EglBase {
   }
 
   @Override
-  public org.webrtc.EglBase.Context getEglBaseContext() {
+  public EglBase.Context getEglBaseContext() {
     return new Context(eglContext);
   }
 
